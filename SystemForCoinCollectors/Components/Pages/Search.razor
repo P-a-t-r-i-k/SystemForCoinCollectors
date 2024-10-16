@@ -1,12 +1,26 @@
 ﻿@page "/search"
 
 <PageTitle>Search</PageTitle>
+    
+<div class="container center">
+    <div class="row align-items-center height-25">
+        <h3>What are you looking for?</h3>
+    </div>
+    
+    <div class="row align-items-center">
+        <div class="col right">
+            <button class="big-purple-button"><i class="bi bi-coin big-icon"></i><br>Coins</button>
+        </div>
 
-<h3 class="center">What are you looking for?</h3>
+        <div class="col">
+            <button class="big-purple-button"><i class="bi bi-cash big-icon"></i><br>Banknotes</button>
+        </div>
 
-<button class="big-blue-button">Button1</button>
-<button class="big-blue-button">Button2</button>
-<button class="big-blue-button">Button3</button>
+        <div class="col left">
+            <button class="big-purple-button"><i class="bi bi-person-fill big-icon"></i><br>Other users</button>
+        </div>
+    </div>
+</div>
 
 @code {
 
