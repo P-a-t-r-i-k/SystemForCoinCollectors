@@ -1,0 +1,18 @@
+﻿.container {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+}
+
+.card {
+    border: none;
+}
+
+.coinImage {
+    width: 150px;
+    height: 150px;
+}
+
+.test {
+    border: 1px solid;
+}

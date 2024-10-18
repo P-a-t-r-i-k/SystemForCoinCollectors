@@ -1,0 +1,17 @@
+﻿.margin-top-20px {
+    margin-top: 30px;
+}
+
+.guideline-top {
+    margin-top: 15px;
+    margin-bottom: 2px;
+}
+
+.guideline-bot {
+    margin-top: 2px;
+    font-weight: normal;
+}
+
+.bold-text {
+    font-weight: bold;
+}

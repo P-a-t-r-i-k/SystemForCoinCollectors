@@ -18,4 +18,16 @@
     <Folder Include="wwwroot\images\2_euro_coins\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\images\2_euro_coins\Belgium_2euro.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\images\2_euro_coins\Belgium_2euro_v2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\images\2_euro_coins\Belgium_2euro_v3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

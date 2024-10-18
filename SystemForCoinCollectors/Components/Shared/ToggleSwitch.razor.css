@@ -6,10 +6,12 @@
     background: rgb(211, 211, 211);
     outline: none;
     border-radius: 15px;
+    cursor: pointer;
 }
 
 input:checked {
     background: rgb(97, 15, 100);
+    /*background-color: rgb(36, 20, 85);*/
 }
 
 input::before {

@@ -4,6 +4,46 @@
 
 <h3>My Collection</h3>
 
-@code {
+<div class="container">
+    @for (int i = 0; i < _defaultNumberOfRows; i++)
+    {
+        <div class="row">
+            @for (int j = 0; j < _defaultNumberOfColumns; j++)
+            {
+                @if (_defaultNumberOfColumns * i + j < _coinNames.Length)
+                {
+                    <div class="col">
+                        <div class="card d-flex flex-column justify-content-center align-items-center">
+                            <CoinButton CoinName=@_coinNames[_defaultNumberOfColumns * i + j]/>
+                            <ToggleSwitch/>
+                        </div>
+                    </div>    
+                }
+            }
+        </div>
+    }
+</div>
 
+@code {
+    private int _defaultNumberOfRows = 3;
+    private int _defaultNumberOfColumns = 5;
+
+    private string[] _coinNames =
+    {
+        "austrian-coin",
+        "belgian-coin",
+        "belgian-coin-v2",
+        "belgian-coin-v3",
+        "cypriot-coin",
+        "estonian-coin",
+        "finnish-coin",
+        "french-coin",
+        "french-coin-v2",
+        "german-coin",
+        "greek-coin",
+        "irish-coin",
+        "italian-coin",
+        "latvian-coin",
+        "lithuanian-coin"
+    };
 }
