@@ -1,11 +1,14 @@
 ﻿.guidelines-heading {
     margin-top: 30px;
     text-decoration: underline;
+    font-size: 25px;
 }
 
 .guideline-top {
     margin-top: 15px;
     margin-bottom: 2px;
+    text-decoration: underline;
+    font-weight: 700;
 }
 
 .guideline-bot {
@@ -13,6 +16,14 @@
     font-weight: normal;
 }
 
-.bold-text {
-    font-weight: bold;
+.guideline {
+    margin-bottom: 20px;
+    padding: 5px 30px 5px 30px;
+    border-radius: 10px;
+    background: url("images/purple_background-image.png") repeat-x;
+    background-size: cover;
+    background-position: center;
+    color: rgba(255,255,255,0.9);
+    border: none;
+    outline: none;
 }

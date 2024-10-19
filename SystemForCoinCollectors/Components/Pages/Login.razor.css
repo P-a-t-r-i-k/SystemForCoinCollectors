@@ -1,15 +1,13 @@
 ﻿* {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
 .wrapper {
     position: relative;
+    margin-top: 10%;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 25%;
-    transform: translateY(-50%);
     width: 420px;
     background: url("images/purple_background-image.png") repeat-x;
     background-size: cover;
