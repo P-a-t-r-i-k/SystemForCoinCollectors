@@ -15,6 +15,7 @@
 @using Microsoft.AspNetCore.Mvc.RazorPages
 @using System.ComponentModel.DataAnnotations
 @using System.Runtime.InteropServices.JavaScript
+@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
 
 @page "/register"
 
@@ -44,7 +45,7 @@
         </div>
         
         <div class="input-box">
-            <InputText @bind-Value="UserM.RepeatPassword" type="password" placeholder="Username" class="register-input" />
+            <InputText @bind-Value="UserM.RepeatPassword" type="password" placeholder="Repeat password" class="register-input" />
             <i class="bi bi-lock-fill"></i>
             <ValidationMessage For="() => UserM.RepeatPassword" class="text-danger"/>
         </div>
@@ -56,8 +57,14 @@
     </div>
 </EditForm>
 
-@inject Data.ApplicationDbContext appDbContext
+@inject UserManager<ApplicationUser> UserManager
+@inject IUserStore<ApplicationUser> UserStore
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+
 @code {
+    private IEnumerable<IdentityError>? _identityErrors;
+
     [SupplyParameterFromForm]
     public UserModel UserM { get; set; } = new();
 
@@ -82,14 +89,46 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
-        ApplicationUser appUser = new()
+        var user = CreateUser();
+
+        // TODO Add email confirmation.
+        user.EmailConfirmed = true;
+
+        await UserStore.SetUserNameAsync(user, UserM.UserName, CancellationToken.None);
+        var emailStore = GetEmailStore();
+        await emailStore.SetEmailAsync(user, UserM.Email, CancellationToken.None);
+        var result = await UserManager.CreateAsync(user, UserM.Password);
+
+        if (!result.Succeeded)
         {
-            UserName = UserM.UserName,
-            Email = UserM.Email,
-            EmailConfirmed = true,
-        };
-        appDbContext.Users.Add(appUser);
-        await appDbContext.SaveChangesAsync();
+            _identityErrors = result.Errors;
+            return;
+        }
+
+        await SignInManager.SignInAsync(user, isPersistent: false);
+        NavigationManager.NavigateTo("/auth");
     }
 
+
+    private ApplicationUser CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<ApplicationUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                                                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
+        }
+    }
+
+    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<ApplicationUser>)UserStore;
+    }
 }
