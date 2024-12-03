@@ -16,6 +16,7 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Runtime.InteropServices.JavaScript
 @using Microsoft.AspNetCore.Identity.EntityFrameworkCore
+@using SystemForCoinCollectors.Services
 
 @page "/register"
 
@@ -23,6 +24,11 @@
 
 <EditForm method="post" Model="UserM" OnValidSubmit="RegisterUser" FormName="register" Enhance>
     <DataAnnotationsValidator />
+
+    @if (_errorMessage.Length > 0)
+    {
+        <div class="alert alert-danger error-message">@_errorMessage</div>
+    }
 
     <div class="wrapper">
         <h1>Register</h1>
@@ -61,8 +67,10 @@
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager NavigationManager
+@inject IUserService UserService
 
 @code {
+    private string _errorMessage = "";
     private IEnumerable<IdentityError>? _identityErrors;
 
     [SupplyParameterFromForm]
@@ -89,6 +97,14 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
+        List<ApplicationUser> users = await UserService.GetAllUsers();
+        ApplicationUser? userWithThisUsername = users.Where(u => u.UserName == UserM.UserName).Select(u => u).FirstOrDefault();
+        if (userWithThisUsername != null)
+        {
+            _errorMessage = "User with this username already exist!";
+            return;
+        }
+
         var user = CreateUser();
 
         // TODO Add email confirmation.

@@ -12,7 +12,7 @@
     public async Task LogOut()
     {
         await SignInManager.SignOutAsync();
-        NavigationManager.NavigateTo("/home");
+        NavigationManager.NavigateTo("/login");
     }
     
     protected override async Task OnInitializedAsync()

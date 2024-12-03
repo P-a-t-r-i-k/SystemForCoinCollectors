@@ -6,6 +6,7 @@ using SystemForCoinCollectors.Components;
 using SystemForCoinCollectors.Components.Account;
 using SystemForCoinCollectors.Controllers;
 using SystemForCoinCollectors.Data;
+using SystemForCoinCollectors.Services;
 
 namespace SystemForCoinCollectors
 {
@@ -25,6 +26,9 @@ namespace SystemForCoinCollectors
             builder.Services.AddScoped<IdentityUserAccessor>();
             builder.Services.AddScoped<IdentityRedirectManager>();
             builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+            //
+            builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddAuthentication(options =>
                 {

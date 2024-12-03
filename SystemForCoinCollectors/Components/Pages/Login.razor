@@ -4,10 +4,16 @@
 @using Microsoft.AspNetCore.Identity
 @using SystemForCoinCollectors.Components.Account
 @using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
 
 
 <EditForm method="post" Model="UserM" OnValidSubmit="LoginUser" FormName="Login" Enhance>
     <DataAnnotationsValidator />
+    
+    @if (_errorMessage.Length > 0)
+    {
+        <div class="alert alert-danger error-message">@_errorMessage</div>
+    }
 
     <div class="wrapper">
         <h1>Login</h1>
@@ -38,8 +44,11 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IUserService UserService
 
 @code {
+    private string _errorMessage = "";
+
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -67,15 +76,22 @@
 
     public async Task LoginUser(EditContext editContext)
     {
+        List<ApplicationUser> users = await UserService.GetAllUsers();
+        ApplicationUser? userWithThisUsername = users.Where(u => u.UserName == UserM.UserName).Select(u => u).FirstOrDefault();
+        if (userWithThisUsername == null)
+        {
+            _errorMessage = "User with this username doesn't exist!";
+            return;
+        }
+
         var result = await SignInManager.PasswordSignInAsync(UserM.UserName, UserM.Password, false, false);
         if (result.Succeeded)
         {
-            Console.WriteLine("User logged in.");
             NavigationManager.NavigateTo("/my-collection");
         }
         else
         {
-            Console.WriteLine("Something went wrong!");
+            _errorMessage = "Incorrect password!";
         }
         
     }
