@@ -19,15 +19,16 @@
 @using SystemForCoinCollectors.Services
 
 @page "/register"
+@* @rendermode InteractiveAuto *@
 
 <PageTitle>Register</PageTitle>
 
 <EditForm method="post" Model="UserM" OnValidSubmit="RegisterUser" FormName="register" Enhance>
     <DataAnnotationsValidator />
 
-    @if (_errorMessage.Length > 0)
+    @foreach (string errorMessage in _errorMessages)
     {
-        <div class="alert alert-danger error-message">@_errorMessage</div>
+        <div class="alert alert-danger error-message">@errorMessage</div>
     }
 
     <div class="wrapper">
@@ -70,8 +71,7 @@
 @inject IUserService UserService
 
 @code {
-    private string _errorMessage = "";
-    private IEnumerable<IdentityError>? _identityErrors;
+    private readonly List<string> _errorMessages = new List<string>();
 
     [SupplyParameterFromForm]
     public UserModel UserM { get; set; } = new();
@@ -97,11 +97,12 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
+        _errorMessages.Clear();
         List<ApplicationUser> users = await UserService.GetAllUsers();
         ApplicationUser? userWithThisUsername = users.Where(u => u.UserName == UserM.UserName).Select(u => u).FirstOrDefault();
         if (userWithThisUsername != null)
         {
-            _errorMessage = "User with this username already exist!";
+            _errorMessages.Add("User with this username already exist!");
             return;
         }
 
@@ -117,12 +118,16 @@
 
         if (!result.Succeeded)
         {
-            _identityErrors = result.Errors;
+            foreach (var error in result.Errors)
+            {
+                _errorMessages.Add(error.Description);
+            }
+            
             return;
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);
-        NavigationManager.NavigateTo("/auth");
+        NavigationManager.NavigateTo("/profile");
     }
 
 

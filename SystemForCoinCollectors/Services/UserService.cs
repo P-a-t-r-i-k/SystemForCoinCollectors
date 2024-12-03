@@ -17,5 +17,13 @@ namespace SystemForCoinCollectors.Services
             var users = await _context.Users.ToListAsync();
             return users;
         }
+
+        public async Task DeleteUser(string username)
+        {
+            ApplicationUser userToDelete = _context.Users.Where(u => u.UserName == username).FirstOrDefault();
+            _context.Remove(userToDelete);
+            _context.SaveChanges();
+            Console.WriteLine("User deleted from database.");
+        }
     }
 }

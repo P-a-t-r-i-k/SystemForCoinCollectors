@@ -9,7 +9,7 @@
 
 <EditForm method="post" Model="UserM" OnValidSubmit="LoginUser" FormName="Login" Enhance>
     <DataAnnotationsValidator />
-    
+
     @if (_errorMessage.Length > 0)
     {
         <div class="alert alert-danger error-message">@_errorMessage</div>

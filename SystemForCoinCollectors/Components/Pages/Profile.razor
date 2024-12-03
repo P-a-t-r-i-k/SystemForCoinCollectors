@@ -1,14 +1,57 @@
 ﻿@page "/profile"
+@rendermode InteractiveServer
 
+@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Mvc
 @using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
 
+<button @onclick="DeleteAccount">Delete My Account</button>
+
+<EditForm method="post" Model="EditProfileM" OnValidSubmit="EditProfile" FormName="register" Enhance>
+    <DataAnnotationsValidator />
+
+
+</EditForm>
+
 @code
 {
+    [SupplyParameterFromForm]
+    public EditProfileModel EditProfileM { get; set; } = new();
+
+    public class EditProfileModel
+    {
+        //private ApplicationUser _loggedUser = context.User.Identity?.Name;
+        public string UserName = "";
+    }
+
+    public async Task EditProfile()
+    {
+        
+    }
+
+    public async Task DeleteAccount()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        string? name = "";
+        if (user.Identity != null)
+        {
+            name = user.Identity.Name;
+        }
+
+        Console.WriteLine("Logged in user: " + name);
+        UserService.DeleteUser(name);
+        Console.WriteLine("Account deleted");
+    }
 }
