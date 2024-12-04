@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Update;
 using SystemForCoinCollectors.Data;
@@ -10,10 +11,12 @@ namespace SystemForCoinCollectors.Controllers
     public class UserController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public UserController(ApplicationDbContext context)
+        public UserController(ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
         {
             _context = context;
+            _signInManager = signInManager;
         }
 
         [HttpPost]
@@ -52,7 +55,20 @@ namespace SystemForCoinCollectors.Controllers
         }
 
         [HttpGet]
-        public JsonResult Get(string id)
+        public JsonResult GetByUserName(string username)
+        {
+            ApplicationUser userInDb = _context.Users.Where(u => u.UserName == username).FirstOrDefault();
+            //ApplicationUser? userInDb = _context.Users.Find(id);
+            if (userInDb == null)
+            {
+                return new JsonResult(null) { StatusCode = 404 };
+            }
+
+            return new JsonResult(userInDb) { StatusCode = 200 };
+        }
+
+        [HttpGet]
+        public JsonResult GetById(string id)
         {
             ApplicationUser? userInDb = _context.Users.Find(id);
             if (userInDb == null)

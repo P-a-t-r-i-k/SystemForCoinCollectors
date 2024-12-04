@@ -12,7 +12,6 @@
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<ApplicationUser> UserManager
-@inject UserController UserController
 
 <PageTitle>Profile</PageTitle>
 
@@ -46,7 +45,7 @@
     </div>
     
     <div class="form-floating mb-3">
-        <InputText @bind-Value="EditProfileM.UserName" class="form-control" placeholder="Username"></InputText>
+        <InputText @bind-Value="EditProfileM.UserName" class="form-control" placeholder="Username" disabled="true"></InputText>
         <label for="username" class="form-label">Username</label>
         <ValidationMessage For="() => EditProfileM.UserName" class="text-danger" />
     </div>
@@ -59,13 +58,13 @@
 @code
 {
     ApplicationUser? _user = null;
+    string? _oldUsername = null;
 
     [SupplyParameterFromForm]
     public EditProfileModel EditProfileM { get; set; } = new();
 
     public class EditProfileModel
     {
-        //private ApplicationUser _loggedUser = context.User.Identity?.Name;
         public string FirstName { get; set; } = "";
         public string LastName { get; set; } = "";
         public string Address { get; set; } = "";
@@ -79,15 +78,15 @@
 
     public async Task EditAccount()
     {
-        Console.WriteLine("Edited");
-        if (_user != null)
+        if (_user != null && _oldUsername != null)
         {
             _user.Name = EditProfileM.FirstName;
             _user.Surname = EditProfileM.LastName;
             _user.Address = EditProfileM.Address;
             _user.Email = EditProfileM.Email;
             _user.UserName = EditProfileM.UserName;
-            UserController.Edit(_user);
+            await UserService.Edit(_user, _oldUsername);
+            _oldUsername = _user.UserName;
         }
     }
 
@@ -113,15 +112,14 @@
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var userClaimsPrincipal = authenticationState.User;
 
-        string? name = "";
         if (userClaimsPrincipal.Identity != null)
         {
-            name = userClaimsPrincipal.Identity.Name;
+            _oldUsername = userClaimsPrincipal.Identity.Name;
         }
 
-        if (!string.IsNullOrEmpty(name))
+        if (!string.IsNullOrEmpty(_oldUsername))
         {
-            _user = await UserService.GetUser(name);
+            _user = await UserService.GetUser(_oldUsername);
             if (_user != null)
             {
                 EditProfileM.FirstName = _user.Name;

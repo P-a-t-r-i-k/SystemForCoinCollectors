@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SystemForCoinCollectors.Controllers;
 using SystemForCoinCollectors.Data;
 
 namespace SystemForCoinCollectors.Services
@@ -24,7 +26,6 @@ namespace SystemForCoinCollectors.Services
         public async Task DeleteUser(string username)
         {
             ApplicationUser userToDelete = _context.Users.Where(u => u.UserName == username).FirstOrDefault();
-
             _context.Remove(userToDelete);
             await _context.SaveChangesAsync();
         }
@@ -39,6 +40,22 @@ namespace SystemForCoinCollectors.Services
         public async Task LogOut()
         {
             await _signInManager.SignOutAsync();
+        }
+
+        public async Task Edit(ApplicationUser user, string oldUsername)
+        {
+            ApplicationUser? userInDb = _context.Users.Where(u => u.UserName == oldUsername).FirstOrDefault(); ;
+
+            if (userInDb != null)
+            {
+                userInDb.Name = user.Name;
+                userInDb.Email = user.Email;
+                userInDb.Surname = user.Surname;
+                userInDb.Address = user.Address;
+                userInDb.UserName = user.UserName;
+
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
