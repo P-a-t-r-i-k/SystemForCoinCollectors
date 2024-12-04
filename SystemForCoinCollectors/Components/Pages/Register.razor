@@ -1,34 +1,152 @@
-﻿@page "/register"
+﻿@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
 
-<div class="wrapper">
-    <h1>Register</h1>
-    <div class="input-box">
-        <input type="text" placeholder="Username" required>
-        <i class="bi bi-person-fill"></i>
+@page "/register"
+
+<PageTitle>Register</PageTitle>
+
+<EditForm method="post" Model="UserM" OnValidSubmit="RegisterUser" FormName="register" Enhance>
+    <DataAnnotationsValidator />
+
+    @foreach (string errorMessage in _errorMessages)
+    {
+        <div class="alert alert-danger error-message">@errorMessage</div>
+    }
+
+    <div class="wrapper">
+        <h1>Register</h1>
+        <div class="input-box">
+            <InputText @bind-Value="UserM.UserName" placeholder="Username" class="register-input"/>
+            <i class="bi bi-person-fill"></i>
+            <ValidationMessage For="() => UserM.UserName" class="text-danger"/>
+        </div>
+
+        <div class="input-box">
+            <InputText @bind-Value="UserM.Email" placeholder="E-mail" class="register-input" />
+            <i class="bi bi-at"></i>
+            <ValidationMessage For="() => UserM.Email" class="text-danger"/>
+        </div>
+
+        <div class="input-box">
+            <InputText @bind-Value="UserM.Password" type="password" placeholder="Password" class="register-input" />
+            <i class="bi bi-lock-fill"></i>
+            <ValidationMessage For="() => UserM.Password" class="text-danger"/>
+        </div>
+        
+        <div class="input-box">
+            <InputText @bind-Value="UserM.RepeatPassword" type="password" placeholder="Repeat password" class="register-input" />
+            <i class="bi bi-lock-fill"></i>
+            <ValidationMessage For="() => UserM.RepeatPassword" class="text-danger"/>
+        </div>
+       
+        <button type="submit">Register</button>
+        <div class="login-link">
+            <p>Already have an account? <a href="login">Login</a></p>
+        </div>
     </div>
+</EditForm>
 
-    <div class="input-box">
-        <input type="text" placeholder="E-mail" required>
-        <i class="bi bi-at"></i>
-    </div>
-
-    <div class="input-box">
-        <input type="password" placeholder="Password" required>
-        <i class="bi bi-lock-fill"></i>
-    </div>
-
-    <div class="input-box">
-        <input type="password" placeholder="Repeat password" required>
-        <i class="bi bi-lock-fill"></i>
-    </div>
-
-    <button type="submit">Register</button>
-    <div class="login-link">
-        <p>Already have an account? <a href="login">Login</a></p>
-    </div>
-</div>
-
+@inject UserManager<ApplicationUser> UserManager
+@inject IUserStore<ApplicationUser> UserStore
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
 
 @code {
+    private readonly List<string> _errorMessages = new List<string>();
 
+    [SupplyParameterFromForm]
+    public UserModel UserM { get; set; } = new();
+
+    public class UserModel
+    {
+        [Required(ErrorMessage = "Username is required!")]
+        public string UserName { get; set; } = "";
+        
+        [Required(ErrorMessage = "E-mail is required!")]
+        [EmailAddress(ErrorMessage = "Invalid e-mail address!")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Password is required!")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Required(ErrorMessage = "You have to repeat password here!")]
+        [DataType(DataType.Password)]
+        [Compare(nameof(Password), ErrorMessage = "Passwords do not match!")]
+        public string RepeatPassword { get; set; } = "";
+    }
+
+    public async Task RegisterUser(EditContext editContext)
+    {
+        _errorMessages.Clear();
+        ApplicationUser? userWithThisUsername = await UserService.GetUser(UserM.UserName);
+
+        bool isError = false;
+        if (userWithThisUsername != null)
+        {
+            _errorMessages.Add("User with this username already exist!");
+            isError = true;
+        }
+
+        ApplicationUser? userWithThisEmail = await UserService.GetUserByEmail(UserM.Email);
+        if (userWithThisEmail != null)
+        {
+            _errorMessages.Add("User with this e-mail already exist!");
+            isError = true;
+        }
+
+        if (isError)
+        {
+            return;
+        }
+
+        var user = CreateUser();
+
+        // TODO Add email confirmation.
+        user.EmailConfirmed = true;
+
+        await UserStore.SetUserNameAsync(user, UserM.UserName, CancellationToken.None);
+        var emailStore = GetEmailStore();
+        await emailStore.SetEmailAsync(user, UserM.Email, CancellationToken.None);
+        var result = await UserManager.CreateAsync(user, UserM.Password);
+
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                _errorMessages.Add(error.Description);
+            }
+            
+            return;
+        }
+
+        await SignInManager.SignInAsync(user, isPersistent: false);
+        NavigationManager.NavigateTo("/my-collection");
+    }
+
+
+    private ApplicationUser CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<ApplicationUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                                                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
+        }
+    }
+
+    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<ApplicationUser>)UserStore;
+    }
 }

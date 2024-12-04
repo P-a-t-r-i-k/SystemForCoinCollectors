@@ -1,0 +1,8 @@
+﻿button {
+    width: 140px;
+    margin-bottom: 50px;
+}
+
+.border-red {
+    border: 2px solid red;
+}

@@ -1,9 +1,144 @@
 ﻿@page "/profile"
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
 
-@code {
+<EditForm method="post" Model="EditProfileM" OnValidSubmit="EditAccount" FormName="deleteUser" Enhance>
+    <DataAnnotationsValidator />
+    
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.UserName" class="form-control" placeholder="Username" disabled="true"></InputText>
+        <label for="username" class="form-label">Username</label>
+    </div>
 
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.FirstName" class="form-control" placeholder="First Name"></InputText>
+        <label for="firstname" class="form-label">First Name</label>
+        <ValidationMessage For="() => EditProfileM.FirstName" class="text-danger" />
+    </div>
+    
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.LastName" class="form-control" placeholder="Last Name"></InputText>
+        <label for="lastname" class="form-label">Last Name</label>
+        <ValidationMessage For="() => EditProfileM.LastName" class="text-danger" />
+    </div>
+    
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.Address" class="form-control" placeholder="Address"></InputText>
+        <label for="address" class="form-label">Address</label>
+        <ValidationMessage For="() => EditProfileM.Address" class="text-danger" />
+    </div>
+
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.Email" class="form-control" placeholder="Email"></InputText>
+        <label for="email" class="form-label">Email</label>
+        <ValidationMessage For="() => EditProfileM.Email" class="text-danger" />
+        <span class="text-danger">@_emailErrorMessage</span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save changes</button>
+</EditForm>
+
+<button class="btn btn-danger" @onclick="DeleteAccount">Delete Account</button>
+
+@code
+{
+    ApplicationUser? _user = null;
+    string? _oldUsername = null;
+    string _emailErrorMessage = "";
+
+    [SupplyParameterFromForm]
+    public EditProfileModel EditProfileM { get; set; } = new();
+
+    public class EditProfileModel
+    {
+        [RegularExpression("^[a-zA-ZáäčďéíĺľňóôŕšťúýžÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ]+$", ErrorMessage = "Only letters are allowed!")]
+        public string FirstName { get; set; } = "";
+
+        [RegularExpression("^[a-zA-ZáäčďéíĺľňóôŕšťúýžÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ]+$", ErrorMessage = "Only letters are allowed!")]
+        public string LastName { get; set; } = "";
+
+        public string Address { get; set; } = "";
+        
+        [Required(ErrorMessage = "Email is required!")]
+        [EmailAddress(ErrorMessage = "Invalid e-mail address!")]
+        public string Email { get; set; } = "";
+
+        public string UserName { get; set; } = "";
+    }
+
+    public async Task EditAccount()
+    {
+        if (_user != null && _oldUsername != null)
+        {
+            ApplicationUser? user = await UserService.GetUserByEmail(EditProfileM.Email);
+            if (user != null && user.Id != _user.Id)
+            {
+                _emailErrorMessage = "User with this e-mail already exist!";
+                Console.WriteLine("");
+            }
+            else
+            {
+                _user.Name = EditProfileM.FirstName;
+                _user.Surname = EditProfileM.LastName;
+                _user.Address = EditProfileM.Address;
+                _user.Email = EditProfileM.Email;
+                _user.UserName = EditProfileM.UserName;
+                await UserService.Edit(_user, _oldUsername);
+                _oldUsername = _user.UserName;
+            }
+        }
+    }
+
+    public async Task DeleteAccount()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        string? name = "";
+        if (user.Identity != null)
+        {
+            name = user.Identity.Name;
+        }
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            await UserService.DeleteUser(name);
+            NavigationManager.NavigateTo("/logout");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userClaimsPrincipal = authenticationState.User;
+
+        if (userClaimsPrincipal.Identity != null)
+        {
+            _oldUsername = userClaimsPrincipal.Identity.Name;
+        }
+
+        if (!string.IsNullOrEmpty(_oldUsername))
+        {
+            _user = await UserService.GetUser(_oldUsername);
+            if (_user != null)
+            {
+                EditProfileM.FirstName = _user.Name;
+                EditProfileM.LastName = _user.Surname;
+                EditProfileM.Address = _user.Address;
+                EditProfileM.Email = _user.Email;
+                EditProfileM.UserName = _user.UserName;
+            }
+        }
+    }
 }

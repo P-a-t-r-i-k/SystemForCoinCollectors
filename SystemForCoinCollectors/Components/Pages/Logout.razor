@@ -1,0 +1,22 @@
+﻿@page "/logout"
+
+@using Microsoft.AspNetCore.Identity
+@using SystemForCoinCollectors.Data
+<h3>Logout</h3>
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+
+@code 
+{
+    public async Task LogOut()
+    {
+        await SignInManager.SignOutAsync();
+        NavigationManager.NavigateTo("/login");
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LogOut();
+    }
+}

@@ -81,11 +81,13 @@
 
 .remember-forgot label input {
     accent-color: white;
+    margin-top: 10px;
     margin-right: 3px;
 }
 
 .remember-forgot a {
     color: white;
+    margin-top: 10px;
     text-decoration: none;
 }
 
@@ -101,4 +103,16 @@
 
 .register-link a:hover {
     text-decoration: underline;
+}
+
+.error-message {
+    width: 420px;
+    height: 40px;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

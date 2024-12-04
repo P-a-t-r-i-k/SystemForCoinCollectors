@@ -1,9 +1,12 @@
+using System.CodeDom;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SystemForCoinCollectors.Components;
 using SystemForCoinCollectors.Components.Account;
+using SystemForCoinCollectors.Controllers;
 using SystemForCoinCollectors.Data;
+using SystemForCoinCollectors.Services;
 
 namespace SystemForCoinCollectors
 {
@@ -17,10 +20,15 @@ namespace SystemForCoinCollectors
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
+            builder.Services.AddRazorPages();
+
             builder.Services.AddCascadingAuthenticationState();
             builder.Services.AddScoped<IdentityUserAccessor>();
             builder.Services.AddScoped<IdentityRedirectManager>();
             builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+            //
+            builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddAuthentication(options =>
                 {
@@ -41,7 +49,12 @@ namespace SystemForCoinCollectors
 
             builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+            //builder.Services.AddControllers();
+            builder.Services.AddScoped<UserController>();
+
             var app = builder.Build();
+            app.MapRazorPages();
+            app.UseDeveloperExceptionPage();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -57,6 +70,8 @@ namespace SystemForCoinCollectors
 
             app.UseHttpsRedirection();
 
+            //app.MapControllers();
+
             app.UseStaticFiles();
             app.UseAntiforgery();
 
@@ -65,7 +80,6 @@ namespace SystemForCoinCollectors
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
-
             app.Run();
         }
     }

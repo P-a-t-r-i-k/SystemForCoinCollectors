@@ -12,68 +12,78 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="home">
-                <span><i class="bi bi-house-door-fill nav-icon"></i></span>Home
-            </NavLink>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="profile">
-                <span><i class="bi bi-person-fill nav-icon"></i></span>Profile
-            </NavLink>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="my-collection">
-                <span><i class="bi bi-grid-3x3-gap-fill nav-icon"></i></span>My Collection
-            </NavLink>
-        </div>
-        
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="home">
+                    <span><i class="bi bi-house-door-fill nav-icon"></i></span>Home
+                </NavLink>
+            </div>
+        <AuthorizeView>  
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="profile">
+                        <span><i class="bi bi-person-fill nav-icon"></i></span>Profile
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="my-collection">
+                        <span><i class="bi bi-grid-3x3-gap-fill nav-icon"></i></span>My Collection
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="search">
                 <span><i class="bi bi-search nav-icon"></i></span>Search
             </NavLink>
         </div>
-        
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="swap-centre">
                 <span><i class="bi bi-arrow-left-right nav-icon"></i></span>Swap Centre
             </NavLink>
         </div>
-        
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="support">
                 <span><i class="bi bi-question-circle nav-icon"></i></span>Support
             </NavLink>
         </div>
-        
-        @* <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span><i class="bi bi-box-arrow-left nav-icon"></i></span>Log Out
-            </NavLink>
-        </div>*@
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="login">
-                <span><i class="bi bi-box-arrow-in-right nav-icon"></i></span>Log In
-            </NavLink>
-        </div>
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="logout">
+                        <span><i class="bi bi-box-arrow-left nav-icon"></i></span>Log Out
+                    </NavLink>
+                </div>
+            </Authorized>
+
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login">
+                        <span><i class="bi bi-box-arrow-in-right nav-icon"></i></span>Log In
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </nav>
+   
 </div>
 
 @code {
-    private string? currentUrl;
+    private string? _currentUrl;
 
     protected override void OnInitialized()
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        _currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        _currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
     }
 
