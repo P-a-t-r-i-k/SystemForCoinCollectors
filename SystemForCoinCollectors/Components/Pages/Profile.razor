@@ -1,22 +1,24 @@
 ﻿@page "/profile"
-@* @rendermode InteractiveServer *@
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Mvc
+@using SystemForCoinCollectors.Controllers
 @using SystemForCoinCollectors.Data
 @using SystemForCoinCollectors.Services
 
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<ApplicationUser> UserManager
+@inject UserController UserController
 
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
 
-<EditForm method="post" Model="EditProfileM" OnValidSubmit="DeleteAccount" FormName="deleteUser" Enhance>
+<EditForm method="post" Model="EditProfileM" OnValidSubmit="EditAccount" FormName="deleteUser" Enhance>
     <DataAnnotationsValidator />
     
     <div class="form-floating mb-3">
@@ -36,16 +38,28 @@
         <label for="address" class="form-label">Address</label>
         <ValidationMessage For="() => EditProfileM.Address" class="text-danger"/>
     </div>
-
-    <InputText @bind-Value="EditProfileM.Email" class="form-control" placeholder="E-mail"></InputText>
-    <InputText @bind-Value="EditProfileM.UserName" class="form-control" placeholder="Username"></InputText>
     
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.Email" class="form-control" placeholder="Email"></InputText>
+        <label for="email" class="form-label">Email</label>
+        <ValidationMessage For="() => EditProfileM.Email" class="text-danger" />
+    </div>
+    
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.UserName" class="form-control" placeholder="Username"></InputText>
+        <label for="username" class="form-label">Username</label>
+        <ValidationMessage For="() => EditProfileM.UserName" class="text-danger" />
+    </div>
+
+    <button type="submit">Save changes</button>
 </EditForm>
 
 <a href="delete-account" class="delete-account-link">Delete Account</a>
 
 @code
 {
+    ApplicationUser? _user = null;
+
     [SupplyParameterFromForm]
     public EditProfileModel EditProfileM { get; set; } = new();
 
@@ -55,13 +69,26 @@
         public string FirstName { get; set; } = "";
         public string LastName { get; set; } = "";
         public string Address { get; set; } = "";
+        
+        [Required(ErrorMessage = "Email is required!")]
         public string Email { get; set; } = "";
+        
+        [Required(ErrorMessage = "Username is required!")]
         public string UserName { get; set; } = "";
     }
 
-    public async Task EditProfile()
+    public async Task EditAccount()
     {
-        
+        Console.WriteLine("Edited");
+        if (_user != null)
+        {
+            _user.Name = EditProfileM.FirstName;
+            _user.Surname = EditProfileM.LastName;
+            _user.Address = EditProfileM.Address;
+            _user.Email = EditProfileM.Email;
+            _user.UserName = EditProfileM.UserName;
+            UserController.Edit(_user);
+        }
     }
 
     public async Task DeleteAccount()
@@ -78,6 +105,31 @@
         if (!string.IsNullOrEmpty(name))
         {
             await UserService.DeleteUser(name);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userClaimsPrincipal = authenticationState.User;
+
+        string? name = "";
+        if (userClaimsPrincipal.Identity != null)
+        {
+            name = userClaimsPrincipal.Identity.Name;
+        }
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            _user = await UserService.GetUser(name);
+            if (_user != null)
+            {
+                EditProfileM.FirstName = _user.Name;
+                EditProfileM.LastName = _user.Surname;
+                EditProfileM.Address = _user.Address;
+                EditProfileM.Email = _user.Email;
+                EditProfileM.UserName = _user.UserName;
+            }
         }
     }
 }

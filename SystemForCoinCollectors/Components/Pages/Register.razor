@@ -19,7 +19,6 @@
 @using SystemForCoinCollectors.Services
 
 @page "/register"
-@* @rendermode InteractiveAuto *@
 
 <PageTitle>Register</PageTitle>
 
@@ -127,7 +126,7 @@
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);
-        NavigationManager.NavigateTo("/profile");
+        NavigationManager.NavigateTo("/my-collection");
     }
 
 

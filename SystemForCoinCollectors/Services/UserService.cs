@@ -29,6 +29,13 @@ namespace SystemForCoinCollectors.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task<ApplicationUser?> GetUser(string username)
+        {
+            ApplicationUser? user = _context.Users.Where(u => u.UserName == username).FirstOrDefault();
+            return user;
+        }
+
+
         public async Task LogOut()
         {
             await _signInManager.SignOutAsync();

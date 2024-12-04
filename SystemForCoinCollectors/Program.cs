@@ -49,6 +49,9 @@ namespace SystemForCoinCollectors
 
             builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+            //builder.Services.AddControllers();
+            builder.Services.AddScoped<UserController>();
+
             var app = builder.Build();
             app.MapRazorPages();
             app.UseDeveloperExceptionPage();
@@ -66,6 +69,8 @@ namespace SystemForCoinCollectors
             }
 
             app.UseHttpsRedirection();
+
+            //app.MapControllers();
 
             app.UseStaticFiles();
             app.UseAntiforgery();

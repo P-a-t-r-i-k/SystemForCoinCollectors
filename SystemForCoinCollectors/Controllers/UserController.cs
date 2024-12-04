@@ -43,6 +43,8 @@ namespace SystemForCoinCollectors.Controllers
             userInDb.Name = user.Name;
             userInDb.Email = user.Email;
             userInDb.Surname = user.Surname;
+            userInDb.Address = user.Address;
+            userInDb.UserName = user.UserName;
 
             _context.SaveChanges();
 
