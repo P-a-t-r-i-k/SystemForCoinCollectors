@@ -32,8 +32,12 @@ namespace SystemForCoinCollectors.Services
 
         public async Task<ApplicationUser?> GetUser(string username)
         {
-            ApplicationUser? user = _context.Users.Where(u => u.UserName == username).FirstOrDefault();
-            return user;
+            return _context.Users.Where(u => u.UserName == username).FirstOrDefault();
+        }
+
+        public async Task<ApplicationUser?> GetUserByEmail(string email)
+        {
+            return _context.Users.Where(u => u.Email == email).FirstOrDefault();
         }
 
 

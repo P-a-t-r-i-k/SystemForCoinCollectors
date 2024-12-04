@@ -1,21 +1,6 @@
 ﻿@using System.ComponentModel.DataAnnotations
-@using System.Text
-@using System.Text.Encodings.Web
-@using Azure.Identity
 @using Microsoft.AspNetCore.Identity
-@using Microsoft.AspNetCore.Mvc
-@using Microsoft.AspNetCore.Mvc.ModelBinding
-@using Microsoft.AspNetCore.Mvc.RazorPages
-@using Microsoft.AspNetCore.WebUtilities
-@using Microsoft.EntityFrameworkCore
-@using SystemForCoinCollectors.Components.Account
 @using SystemForCoinCollectors.Data
-
-@using Microsoft.AspNetCore.Mvc
-@using Microsoft.AspNetCore.Mvc.RazorPages
-@using System.ComponentModel.DataAnnotations
-@using System.Runtime.InteropServices.JavaScript
-@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
 @using SystemForCoinCollectors.Services
 
 @page "/register"
@@ -97,11 +82,24 @@
     public async Task RegisterUser(EditContext editContext)
     {
         _errorMessages.Clear();
-        List<ApplicationUser> users = await UserService.GetAllUsers();
-        ApplicationUser? userWithThisUsername = users.Where(u => u.UserName == UserM.UserName).Select(u => u).FirstOrDefault();
+        ApplicationUser? userWithThisUsername = await UserService.GetUser(UserM.UserName);
+
+        bool isError = false;
         if (userWithThisUsername != null)
         {
             _errorMessages.Add("User with this username already exist!");
+            isError = true;
+        }
+
+        ApplicationUser? userWithThisEmail = await UserService.GetUserByEmail(UserM.Email);
+        if (userWithThisEmail != null)
+        {
+            _errorMessages.Add("User with this e-mail already exist!");
+            isError = true;
+        }
+
+        if (isError)
+        {
             return;
         }
 
