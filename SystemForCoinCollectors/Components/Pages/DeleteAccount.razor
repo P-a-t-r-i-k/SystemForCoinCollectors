@@ -1,0 +1,37 @@
+﻿@page "/delete-account"
+
+@using Microsoft.AspNetCore.Identity
+@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>DeleteAccount</h3>
+
+@code {
+    public async Task DeleteUser()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        string? name = "";
+        if (user.Identity != null)
+        {
+            name = user.Identity.Name;
+        }
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            await UserService.DeleteUser(name);
+            NavigationManager.NavigateTo("/logout");
+        }
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await DeleteUser();
+    }
+}

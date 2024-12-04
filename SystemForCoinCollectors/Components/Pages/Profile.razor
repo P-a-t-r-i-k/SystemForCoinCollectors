@@ -1,5 +1,5 @@
 ﻿@page "/profile"
-@rendermode InteractiveServer
+@* @rendermode InteractiveServer *@
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
@@ -10,18 +10,39 @@
 
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
 
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
 
-<button @onclick="DeleteAccount">Delete My Account</button>
-
-<EditForm method="post" Model="EditProfileM" OnValidSubmit="EditProfile" FormName="register" Enhance>
+<EditForm method="post" Model="EditProfileM" OnValidSubmit="DeleteAccount" FormName="deleteUser" Enhance>
     <DataAnnotationsValidator />
+    
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.FirstName" class="form-control" placeholder="First Name"></InputText>
+        <label for="firstname" class="form-label">First Name</label>
+        <ValidationMessage For="() => EditProfileM.FirstName" class="text-danger" />
+    </div>
+    
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.LastName" class="form-control" placeholder="Last Name"></InputText>
+        <label for="lastname" class="form-label">Last Name</label>
+        <ValidationMessage For="() => EditProfileM.LastName" class="text-danger" />
+    </div>
+    
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="EditProfileM.Address" class="form-control" placeholder="Address"></InputText>
+        <label for="address" class="form-label">Address</label>
+        <ValidationMessage For="() => EditProfileM.Address" class="text-danger"/>
+    </div>
 
-
+    <InputText @bind-Value="EditProfileM.Email" class="form-control" placeholder="E-mail"></InputText>
+    <InputText @bind-Value="EditProfileM.UserName" class="form-control" placeholder="Username"></InputText>
+    
 </EditForm>
+
+<a href="delete-account" class="delete-account-link">Delete Account</a>
 
 @code
 {
@@ -31,7 +52,11 @@
     public class EditProfileModel
     {
         //private ApplicationUser _loggedUser = context.User.Identity?.Name;
-        public string UserName = "";
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public string Address { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string UserName { get; set; } = "";
     }
 
     public async Task EditProfile()
@@ -50,8 +75,9 @@
             name = user.Identity.Name;
         }
 
-        Console.WriteLine("Logged in user: " + name);
-        UserService.DeleteUser(name);
-        Console.WriteLine("Account deleted");
+        if (!string.IsNullOrEmpty(name))
+        {
+            await UserService.DeleteUser(name);
+        }
     }
 }

@@ -6,5 +6,6 @@ namespace SystemForCoinCollectors.Services
     {
         public Task<List<ApplicationUser>> GetAllUsers();
         public Task DeleteUser(string username);
+        public Task LogOut();
     }
 }
