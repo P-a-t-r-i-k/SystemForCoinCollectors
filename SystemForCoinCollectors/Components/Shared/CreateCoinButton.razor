@@ -1,0 +1,13 @@
+﻿@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+
+<button @onclick="CreateCoin" class="btn btn-primary">Create Coin</button>
+
+
+@code {
+    void CreateCoin()
+    {
+        NavigationManager.NavigateTo("/edit-coin");
+    }
+}

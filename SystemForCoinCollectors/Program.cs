@@ -29,6 +29,7 @@ namespace SystemForCoinCollectors
 
             //
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<ICoinService, CoinService>();
 
             builder.Services.AddAuthentication(options =>
                 {
@@ -43,6 +44,7 @@ namespace SystemForCoinCollectors
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddSignInManager()
                 .AddDefaultTokenProviders();

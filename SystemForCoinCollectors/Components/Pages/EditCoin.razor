@@ -1,0 +1,50 @@
+﻿@page "/edit-coin"
+@page "/edit-coin/{id:int}"
+@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+@inject ICoinService CoinService
+
+<h3>Create Coin</h3>
+
+<EditForm Model="Coin" enctype="multipart/form-data" OnSubmit="HandleSubmit" FormName="EditCoin">
+    <label>Feature</label>
+    <InputText @bind-Value="Coin.Feature">@Coin.Feature</InputText>
+    
+    <label>Description</label>
+    <InputText @bind-Value="Coin.Description">@Coin.Description</InputText>
+    
+    <label>Issuing Volume</label>
+    <InputText @bind-Value="Coin.IssuingVolume">@Coin.IssuingVolume</InputText>
+    
+    <label>Issuing Date</label>
+    <InputText @bind-Value="Coin.IssuingDate">@Coin.IssuingDate</InputText>
+    
+    <label>Image</label>
+    <InputFile name="File" class="form-control"></InputFile>
+    
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public IFormFile File { get; set; }
+
+    [SupplyParameterFromForm]
+    Coin Coin { get; set; } = new Coin()
+    {
+        Feature = string.Empty,
+        Description = string.Empty,
+    };
+
+    async Task HandleSubmit()
+    {
+        string folderPath = "wwwroot/images/2_euro_coins/";
+        string filePath = Path.Combine(folderPath, File.FileName);
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await File.CopyToAsync(stream);
+        await CoinService.AddCoin(Coin);
+    }
+}

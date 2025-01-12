@@ -1,0 +1,42 @@
+﻿@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject ICoinService CoinService
+@inject NavigationManager NavigationManager
+
+@attribute [StreamRendering(true)]
+@* @rendermode @(new InteractiveServerRenderMode(false)) *@
+
+@page "/coin-list"
+<h3>CoinList</h3>
+
+@if (coins == null)
+{
+    <span>Loading...</span>
+}
+else if (coins.Count == 0)
+{
+    <span>No coins were found.</span>
+}
+else
+{
+    <ul>
+        @foreach (var coin in coins)
+        {
+            <li>@coin.Feature</li>
+        }
+    </ul>
+}
+
+<CreateCoinButton></CreateCoinButton>
+
+@code {
+    List<Coin>? coins = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(1000);
+
+        coins = await CoinService.GetAllCoins();
+    }
+}

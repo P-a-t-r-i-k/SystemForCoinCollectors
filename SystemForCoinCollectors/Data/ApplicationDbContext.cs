@@ -5,6 +5,6 @@ namespace SystemForCoinCollectors.Data
 {
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
-
+        public DbSet<Coin> Coins { get; set; }
     }
 }
