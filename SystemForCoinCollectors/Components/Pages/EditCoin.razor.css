@@ -1,0 +1,60 @@
+﻿body {
+
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+    .form-group label {
+        font-size: 16px;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.form-control-file {
+    padding: 10px;
+    font-size: 16px;
+}
+
+.submit-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .submit-button:hover {
+        background-color: #0056b3;
+        color: white;
+    }
+
+.edit-coin-form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+    /* Style for the form section */
+    .edit-coin-form h3 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+.description-box {
+    height: 200px;
+}
