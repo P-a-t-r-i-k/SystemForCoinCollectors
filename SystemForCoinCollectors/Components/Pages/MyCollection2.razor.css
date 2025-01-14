@@ -9,6 +9,21 @@
 }
 
 .coinImage {
+    margin: 25px 10px 5px;
     width: 150px;
     height: 150px;
 }
+
+.prevNext {
+    margin: 15px;
+}
+
+
+    .prevNext button {
+        margin-left: 20px;
+        margin-right: 20px;
+        background-color: rgb(97, 15, 100);
+        border-color: rgb(97, 15, 100);
+        color: white;
+    }
+

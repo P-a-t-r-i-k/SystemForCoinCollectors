@@ -7,6 +7,7 @@
 @attribute [Authorize] *@
 
 @attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
 
 @inject ICoinService CoinService
 
@@ -23,6 +24,14 @@ else if (_coins.Count == 0)
 else
 {
     <div class="container">
+        @{
+            Console.Write("Current page: ");
+            Console.WriteLine(_currentPage);
+
+            _currentCoinIndex = (_currentPage - 1) * (_defaultNumberOfRows * _defaultNumberOfColumns);
+            Console.WriteLine($"Current coin index: {_currentCoinIndex}");
+        }
+
         @for (int i = 0; i < _defaultNumberOfRows; i++)
         {
             string removeString = "wwwroot/";
@@ -30,10 +39,12 @@ else
             <div class="row">
                 @for (int j = 0; j < _defaultNumberOfColumns; j++)
                 {
-                    @if (_defaultNumberOfColumns * i + j < _coins.Count)
+                    @if (_currentCoinIndex < _coins.Count)
                     {
-                        _coinEnumerator.MoveNext();
-                        Coin coin = _coinEnumerator.Current;
+                        @* _coinEnumerator.MoveNext(); *@
+                        @* Coin coin = _coinEnumerator.Current; *@
+
+                        Coin coin = _coins.ElementAt(_currentCoinIndex);
                         string imgPath = coin.Image;
                         int length = removeString.Length;
 
@@ -51,15 +62,30 @@ else
                             </div>
                         </div>
                     }
+
+                    _currentCoinIndex++;
                 }
             </div>
         }
+
+        <div class="row">
+            <div class="col prevNext">
+                <button class="btn" disabled="@_previousPageDisabled" @onclick="PreviousPage">←</button>
+                <span>@_currentPage/@_lastPage</span>
+                <button class="btn" disabled="@_nextPageDisabled" @onclick="NextPage">→</button>
+            </div>
+        </div>
     </div>
 }
 
 @code {
     private int _defaultNumberOfRows = 3;
     private int _defaultNumberOfColumns = 5;
+    private int _currentCoinIndex = 0;
+    private int _currentPage = 1;
+    private int _lastPage = 1;
+    private bool _previousPageDisabled = true;
+    private bool _nextPageDisabled = true;
     private List<Coin>.Enumerator _coinEnumerator;
     List<Coin>? _coins = null;
 
@@ -68,9 +94,41 @@ else
         _coins = await CoinService.GetAllCoins();
         _coins = _coins.OrderBy(coin => coin.Country).ThenBy(coin => coin.Feature).ToList();
         _coinEnumerator = _coins.GetEnumerator();
+        _lastPage = _coins.Count / (_defaultNumberOfColumns * _defaultNumberOfRows) + 1;
 
-        // _coins = await CoinService.GetAllCoins();
-        // _coinEnumerator = _coins.GetEnumerator();
+        if (_lastPage > _currentPage)
+        {
+            _nextPageDisabled = false;
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+            if (_currentPage == 1)
+            {
+                _previousPageDisabled = true;
+            }
+        }
+
+        _nextPageDisabled = false;
+    }
+
+    public void NextPage()
+    {
+        if (_currentPage < _lastPage)
+        {
+            _currentPage++;
+            if (_currentPage == _lastPage)
+            {
+                _nextPageDisabled = true;
+            }
+        }
+
+        _previousPageDisabled = false;
+        //StateHasChanged();
     }
 
 }
