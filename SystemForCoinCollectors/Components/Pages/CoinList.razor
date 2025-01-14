@@ -23,7 +23,17 @@ else
     <ul>
         @foreach (var coin in coins)
         {
+            string removeString = "wwwroot/";
+            string imgPath = coin.Image;
+            int length = removeString.Length;
+
+            @if (imgPath.Contains(removeString))
+            {
+                imgPath = coin.Image.Substring(length - 1);
+            }
+
             <li>@coin.Feature</li>
+            <img class="unobtained" width="200" height="200" src="@imgPath">
         }
     </ul>
 }

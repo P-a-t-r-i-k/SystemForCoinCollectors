@@ -1,0 +1,76 @@
+﻿@page "/mc"
+@using Microsoft.CodeAnalysis.CSharp.Syntax
+@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+@* @using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize] *@
+
+@attribute [StreamRendering(true)]
+
+@inject ICoinService CoinService
+
+<PageTitle>My Collection</PageTitle>
+
+@if (_coins == null)
+{
+    <span>Loading...</span>
+}
+else if (_coins.Count == 0)
+{
+    <span>No coins were found.</span>
+}
+else
+{
+    <div class="container">
+        @for (int i = 0; i < _defaultNumberOfRows; i++)
+        {
+            string removeString = "wwwroot/";
+
+            <div class="row">
+                @for (int j = 0; j < _defaultNumberOfColumns; j++)
+                {
+                    @if (_defaultNumberOfColumns * i + j < _coins.Count)
+                    {
+                        _coinEnumerator.MoveNext();
+                        Coin coin = _coinEnumerator.Current;
+                        string imgPath = coin.Image;
+                        int length = removeString.Length;
+
+                        @if (imgPath.Contains(removeString))
+                        {
+                            imgPath = coin.Image.Substring(length - 1);
+                        }
+
+                        <div class="col">
+                            <div class="card d-flex flex-column justify-content-center align-items-center">
+                                <a href="/coin-details/@coin.Id">
+                                    <img class="coinImage" src=@imgPath>
+                                </a>
+                                <ToggleSwitch/>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private int _defaultNumberOfRows = 3;
+    private int _defaultNumberOfColumns = 5;
+    private List<Coin>.Enumerator _coinEnumerator;
+    List<Coin>? _coins = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _coins = await CoinService.GetAllCoins();
+        _coins = _coins.OrderBy(coin => coin.Country).ThenBy(coin => coin.Feature).ToList();
+        _coinEnumerator = _coins.GetEnumerator();
+
+        // _coins = await CoinService.GetAllCoins();
+        // _coinEnumerator = _coins.GetEnumerator();
+    }
+
+}

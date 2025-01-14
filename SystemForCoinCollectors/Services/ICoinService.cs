@@ -6,5 +6,6 @@ namespace SystemForCoinCollectors.Services
     {
         Task<List<Coin>> GetAllCoins();
         Task<Coin> AddCoin(Coin coin);
+        Task<Coin?> GetById(int id);
     }
 }

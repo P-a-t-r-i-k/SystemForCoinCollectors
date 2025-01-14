@@ -1,0 +1,30 @@
+﻿@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject ICoinService CoinService
+
+@page "/coin-details/{id:int}"
+
+<h3>CoinDetails</h3>
+
+@if (_coin == null)
+{
+    <span>Loading...</span>
+}
+else
+{
+    <span>@_coin.Feature</span>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Coin? _coin;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _coin = await CoinService.GetById(Id);
+    }
+
+}

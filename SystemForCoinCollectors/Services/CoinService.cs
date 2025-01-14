@@ -26,5 +26,10 @@ namespace SystemForCoinCollectors.Services
 
             return coin;
         }
+
+        public async Task<Coin?> GetById(int id)
+        {
+            return _context.Coins.Where(coin => coin.Id == id).FirstOrDefault();
+        }
     }
 }

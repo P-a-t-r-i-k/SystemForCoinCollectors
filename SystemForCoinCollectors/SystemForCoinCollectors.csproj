@@ -20,10 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\images\2_euro_coins\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Update="wwwroot\images\2_euro_coins\Belgium_2euro.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
