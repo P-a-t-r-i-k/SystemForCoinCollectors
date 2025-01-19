@@ -1,0 +1,28 @@
+﻿.height-25 {
+    height: 25vh;
+}
+
+.center {
+    text-align: center;
+}
+
+.big-icon {
+    font-size: 5rem;
+    color: white;
+}
+
+.big-purple-button {
+    background: url("images/purple_background-image.png") repeat-x;
+    background-size: cover;
+    background-position: center;
+    width: 200px;
+    height: 200px;
+    border: none;
+    border-radius: 10px;
+    margin: 20px;
+    color: white;
+}
+
+    .big-purple-button:hover {
+        opacity: 0.5;
+    }

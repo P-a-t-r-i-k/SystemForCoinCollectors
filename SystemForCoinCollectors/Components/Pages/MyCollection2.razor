@@ -1,4 +1,4 @@
-﻿@page "/mc"
+﻿@page "/my-collection/{AlbumId:int}/{Year}"
 @using Microsoft.CodeAnalysis.CSharp.Syntax
 @using SystemForCoinCollectors.Data
 @using SystemForCoinCollectors.Services
@@ -41,9 +41,6 @@ else
                 {
                     @if (_currentCoinIndex < _coins.Count)
                     {
-                        @* _coinEnumerator.MoveNext(); *@
-                        @* Coin coin = _coinEnumerator.Current; *@
-
                         Coin coin = _coins.ElementAt(_currentCoinIndex);
                         string imgPath = coin.Image;
                         int length = removeString.Length;
@@ -79,6 +76,12 @@ else
 }
 
 @code {
+    [Parameter]
+    public int AlbumId { get; set; }
+
+    [Parameter]
+    public string Year { get; set; }
+
     private int _defaultNumberOfRows = 3;
     private int _defaultNumberOfColumns = 5;
     private int _currentCoinIndex = 0;
@@ -91,7 +94,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _coins = await CoinService.GetAllCoins();
+        // string x = Year.ToString();
+        _coins = await CoinService.GetCoinsByYear(Year);
         _coins = _coins.OrderBy(coin => coin.Country).ThenBy(coin => coin.Feature).ToList();
         _coinEnumerator = _coins.GetEnumerator();
         _lastPage = _coins.Count / (_defaultNumberOfColumns * _defaultNumberOfRows) + 1;
@@ -128,7 +132,6 @@ else
         }
 
         _previousPageDisabled = false;
-        //StateHasChanged();
     }
 
 }

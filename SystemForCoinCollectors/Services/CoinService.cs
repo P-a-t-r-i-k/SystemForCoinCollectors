@@ -19,6 +19,18 @@ namespace SystemForCoinCollectors.Services
             return coins;
         }
 
+        public Task<List<Coin>> GetCoinsByYear(string year)
+        {
+            var coins = _context.Coins.Where(coin => coin.IssuingYear == year).ToListAsync();
+            return coins;
+        }
+
+        public Task<List<string>> GetYears()
+        {
+            var years = _context.Coins.Select(coin => coin.IssuingYear).Distinct().ToListAsync();
+            return years;
+        }
+
         public async Task<Coin> AddCoin(Coin coin)
         {
             _context.Coins.Add(coin);
