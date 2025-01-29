@@ -1,4 +1,14 @@
-﻿@page "/choose-album"
+﻿@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IAlbumService AlbumService
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@page "/choose-album"
 
 <PageTitle>Choose album</PageTitle>
 
@@ -9,21 +19,47 @@
 
     <div class="row align-items-center">
         <div class="col-12 col-md-4">
-            <a href="/choose-year/1">
-                <button class="big-purple-button"><i class="bi bi-book-fill big-icon"></i><br>Collection album</button>
-            </a>
+            <button @onclick="() => HandleOnClick(CollectionAlbumTypeId)" class="big-purple-button"><i class="bi bi-book-fill big-icon"></i><br>Collection album</button>
         </div>
 
         <div class="col-12 col-md-4">
-            <button class="big-purple-button"><i class="bi bi-stack big-icon"></i><br>Duplicate album</button>
+            <button @onclick="() => HandleOnClick(DuplicateAlbumTypeId)" class="big-purple-button"><i class="bi bi-stack big-icon"></i><br>Duplicate album</button>
         </div>
 
         <div class="col-12 col-md-4">
-            <button class="big-purple-button"><i class="bi bi-bookmark-star-fill big-icon"></i><br>Wishlist album</button>
+            <button @onclick="() => HandleOnClick(WishlistAlbumTypeId)" class="big-purple-button"><i class="bi bi-bookmark-star-fill big-icon"></i><br>Wishlist album</button>
         </div>
     </div>
 </div>
 
 @code {
+    public int CollectionAlbumTypeId { get; set; }
+    public int DuplicateAlbumTypeId { get; set; }
+    public int WishlistAlbumTypeId { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        CollectionAlbumTypeId = await AlbumService.GetCollectionAlbumTypeId();
+        DuplicateAlbumTypeId = await AlbumService.GetDuplicateAlbumTypeId();
+        WishlistAlbumTypeId = await AlbumService.GetWishlistAlbumTypeId();
+    }
+
+    private async void HandleOnClick(int albumTypeId)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId != null)
+        {
+            List<CoinAlbum> userAlbums = AlbumService.GetAllUserAlbums(userId);
+            CoinAlbum? chosenAlbum = userAlbums.Where(item => item.AlbumTypeId == albumTypeId).FirstOrDefault();
+
+            if (chosenAlbum != null)
+            {
+                NavigationManager.NavigateTo($"/choose-year/{chosenAlbum.Id}");
+            }
+        }
+    }
 
 }

@@ -85,7 +85,7 @@
         string filePath = Path.Combine(folderPath, File.FileName);
         await using var stream = new FileStream(filePath, FileMode.Create);
         await File.CopyToAsync(stream);
-        Coin.Image = filePath;
+        Coin.ImagePath = filePath;
         await CoinService.AddCoin(Coin);
         Reset();
 

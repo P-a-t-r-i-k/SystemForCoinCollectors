@@ -24,12 +24,12 @@ else
         @foreach (var coin in coins)
         {
             string removeString = "wwwroot/";
-            string imgPath = coin.Image;
+            string imgPath = coin.ImagePath;
             int length = removeString.Length;
 
             @if (imgPath.Contains(removeString))
             {
-                imgPath = coin.Image.Substring(length - 1);
+                imgPath = coin.ImagePath.Substring(length - 1);
             }
 
             <li>@coin.Feature</li>

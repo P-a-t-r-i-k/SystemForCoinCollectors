@@ -13,9 +13,9 @@ else
 {
     string removeString = "wwwroot/";
     string image = "";
-    if (_coin.Image.Contains(removeString))
+    if (_coin.ImagePath.Contains(removeString))
     {
-        image = _coin.Image.Substring(removeString.Length - 1);
+        image = _coin.ImagePath.Substring(removeString.Length - 1);
     }
 
     <div class="container center">

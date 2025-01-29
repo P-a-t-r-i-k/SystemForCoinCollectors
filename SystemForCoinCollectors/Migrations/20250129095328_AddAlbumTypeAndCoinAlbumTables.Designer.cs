@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemForCoinCollectors.Data;
 
@@ -11,9 +12,11 @@ using SystemForCoinCollectors.Data;
 namespace SystemForCoinCollectors.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250129095328_AddAlbumTypeAndCoinAlbumTables")]
+    partial class AddAlbumTypeAndCoinAlbumTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +24,6 @@ namespace SystemForCoinCollectors.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("CoinCoinAlbum", b =>
-                {
-                    b.Property<int>("CoinAlbumsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CollectedCoinsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CoinAlbumsId", "CollectedCoinsId");
-
-                    b.HasIndex("CollectedCoinsId");
-
-                    b.ToTable("CoinCoinAlbum");
-                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -323,21 +311,6 @@ namespace SystemForCoinCollectors.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.ToTable("CoinAlbums");
-                });
-
-            modelBuilder.Entity("CoinCoinAlbum", b =>
-                {
-                    b.HasOne("SystemForCoinCollectors.Data.CoinAlbum", null)
-                        .WithMany()
-                        .HasForeignKey("CoinAlbumsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SystemForCoinCollectors.Data.Coin", null)
-                        .WithMany()
-                        .HasForeignKey("CollectedCoinsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

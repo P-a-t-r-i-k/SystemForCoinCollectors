@@ -14,6 +14,14 @@
     height: 150px;
 }
 
+.unobtained {
+    opacity: 0.5;
+}
+
+.obtained {
+    opacity: 1;
+}
+
 .prevNext {
     margin: 15px;
 }

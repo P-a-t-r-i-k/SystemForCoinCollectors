@@ -1,4 +1,5 @@
 ﻿@page "/my-collection/{AlbumId:int}/{Year}"
+@using System.Security.Claims
 @using Microsoft.CodeAnalysis.CSharp.Syntax
 @using SystemForCoinCollectors.Data
 @using SystemForCoinCollectors.Services
@@ -10,6 +11,7 @@
 @rendermode @(new InteractiveServerRenderMode(false))
 
 @inject ICoinService CoinService
+@inject IAlbumCoinService AlbumCoinService
 
 <PageTitle>My Collection</PageTitle>
 
@@ -25,11 +27,7 @@ else
 {
     <div class="container">
         @{
-            Console.Write("Current page: ");
-            Console.WriteLine(_currentPage);
-
             _currentCoinIndex = (_currentPage - 1) * (_defaultNumberOfRows * _defaultNumberOfColumns);
-            Console.WriteLine($"Current coin index: {_currentCoinIndex}");
         }
 
         @for (int i = 0; i < _defaultNumberOfRows; i++)
@@ -42,20 +40,27 @@ else
                     @if (_currentCoinIndex < _coins.Count)
                     {
                         Coin coin = _coins.ElementAt(_currentCoinIndex);
-                        string imgPath = coin.Image;
+                        string imgPath = coin.ImagePath;
                         int length = removeString.Length;
 
                         @if (imgPath.Contains(removeString))
                         {
-                            imgPath = coin.Image.Substring(length - 1);
+                            imgPath = coin.ImagePath.Substring(length - 1);
+                        }
+
+                        string coinStatus = "unobtained";
+                        bool isInCollection = _coinsInAlbum.Contains(coin);
+                        if (isInCollection)
+                        {
+                            coinStatus = "obtained";
                         }
 
                         <div class="col">
                             <div class="card d-flex flex-column justify-content-center align-items-center">
                                 <a href="/coin-details/@coin.Id">
-                                    <img class="coinImage" src=@imgPath>
+                                    <img class="coinImage @coinStatus" src=@imgPath>
                                 </a>
-                                <ToggleSwitch/>
+                                <ToggleSwitch Value="isInCollection" CoinId="@coin.Id" OnToggle="OnValueChanged"/>
                             </div>
                         </div>
                     }
@@ -82,8 +87,8 @@ else
     [Parameter]
     public string Year { get; set; }
 
-    private int _defaultNumberOfRows = 3;
-    private int _defaultNumberOfColumns = 5;
+    private const int _defaultNumberOfRows = 3;
+    private const int _defaultNumberOfColumns = 5;
     private int _currentCoinIndex = 0;
     private int _currentPage = 1;
     private int _lastPage = 1;
@@ -91,14 +96,16 @@ else
     private bool _nextPageDisabled = true;
     private List<Coin>.Enumerator _coinEnumerator;
     List<Coin>? _coins = null;
+    List<Coin>? _coinsInAlbum = null;
 
     protected override async Task OnInitializedAsync()
     {
-        // string x = Year.ToString();
         _coins = await CoinService.GetCoinsByYear(Year);
         _coins = _coins.OrderBy(coin => coin.Country).ThenBy(coin => coin.Feature).ToList();
         _coinEnumerator = _coins.GetEnumerator();
         _lastPage = _coins.Count / (_defaultNumberOfColumns * _defaultNumberOfRows) + 1;
+
+        _coinsInAlbum = await AlbumCoinService.GetCoinIdsInAlbum(AlbumId);
 
         if (_lastPage > _currentPage)
         {
@@ -132,6 +139,30 @@ else
         }
 
         _previousPageDisabled = false;
+    }
+
+    public async void OnValueChanged(int coinId)
+    {
+        /*
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        */
+
+        Coin coin = await CoinService.GetById(coinId);
+
+        if (_coinsInAlbum.Contains(coin))
+        {
+            _coinsInAlbum.Remove(coin);
+            AlbumCoinService.RemoveCoinFromAlbum(AlbumId, coinId);
+        }
+        else
+        {
+            _coinsInAlbum.Add(coin);
+            AlbumCoinService.AddCoinToAlbum(AlbumId, coinId);
+        }
+
+        Console.WriteLine(coinId);
     }
 
 }

@@ -1,0 +1,77 @@
+﻿@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject IUserService UserService
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@page "/search-users"
+
+<h3>Users</h3>
+
+<input type="text" @bind="SearchText" @bind:event="oninput">
+@* <InputText @bind-Value="SearchText" @bind-Value:event="oninput" class="form-control">Start typing here...</InputText> *@
+
+@if (_allUsers == null || _filteredUsers == null)
+{
+    <span>Loading...</span>
+}
+else if (_allUsers.Count == 0)
+{
+    <span>An error occurred. No users were retrieved from the database!</span>
+}
+else
+{
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+        </tr>
+        
+        @foreach (var user in _filteredUsers)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Name</td>
+                <td>@user.Surname</td>
+            </tr>
+        }
+    </table>
+}
+
+@code {
+    private string _searchText = "";
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            _searchText = value;
+            FilterUsers();
+        }
+    }
+    List<ApplicationUser>? _allUsers = null;
+    List<ApplicationUser>? _filteredUsers = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allUsers = await UserService.GetAllUsers();
+        _filteredUsers = _allUsers;
+    }
+
+    private void FilterUsers()
+    {
+        Console.WriteLine(_searchText);
+        if (string.IsNullOrWhiteSpace(_searchText))
+        { 
+            _filteredUsers = _allUsers;
+        }
+        else
+        {
+            _filteredUsers = _allUsers.Where(item => item.UserName.StartsWith(_searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
+    }
+}
