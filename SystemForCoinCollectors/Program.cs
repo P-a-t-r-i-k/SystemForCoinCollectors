@@ -32,6 +32,7 @@ namespace SystemForCoinCollectors
             builder.Services.AddScoped<ICoinService, CoinService>();
             builder.Services.AddScoped<IAlbumCoinService, AlbumCoinService>();
             builder.Services.AddScoped<IAlbumService, AlbumService>();
+            builder.Services.AddScoped<IAdminUserHistoryService, AdminUserHistoryService>();
 
             builder.Services.AddAuthentication(options =>
                 {

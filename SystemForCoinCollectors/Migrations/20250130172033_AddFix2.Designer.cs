@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemForCoinCollectors.Data;
 
@@ -11,9 +12,11 @@ using SystemForCoinCollectors.Data;
 namespace SystemForCoinCollectors.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250130172033_AddFix2")]
+    partial class AddFix2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -178,37 +181,10 @@ namespace SystemForCoinCollectors.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AdminId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("DateTimeOfChange")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NewEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("NewReputationPoints")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OldEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OldReputationPoints")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("AdminId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("AdminChangesInUserTableHistory");
                 });
@@ -435,21 +411,6 @@ namespace SystemForCoinCollectors.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("SystemForCoinCollectors.Data.AdminChangesInUserTableHistory", b =>
-                {
-                    b.HasOne("SystemForCoinCollectors.Data.ApplicationUser", "Admin")
-                        .WithMany()
-                        .HasForeignKey("AdminId");
-
-                    b.HasOne("SystemForCoinCollectors.Data.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Admin");
-
-                    b.Navigation("ApplicationUser");
                 });
 
             modelBuilder.Entity("SystemForCoinCollectors.Data.CoinAlbum", b =>
