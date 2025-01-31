@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Text;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SystemForCoinCollectors.Components.Account.Pages.Manage;
 using SystemForCoinCollectors.Controllers;
 using SystemForCoinCollectors.Data;
 
@@ -40,6 +42,29 @@ namespace SystemForCoinCollectors.Services
             return _context.Users.Where(u => u.Email == email).FirstOrDefault();
         }
 
+        public async Task<ApplicationUser?> GetUserById(string userId)
+        {
+            return _context.Users.Where(u => u.Id == userId).FirstOrDefault();
+        }
+
+        public async Task ChangeEmail(string userId, string newEmail)
+        {
+            var user = _context.Users.Where(u => u.Id == userId).FirstOrDefault();
+            if (user != null)
+            {
+                user.Email = newEmail;
+                user.NormalizedEmail = newEmail.ToUpper();
+            }
+        }
+
+        public async Task ChangeReputationPoints(string userId, int newReputationPoints)
+        {
+            var user = _context.Users.Where(u => u.Id == userId).FirstOrDefault();
+            if (user != null)
+            {
+                user.ReputationPoints = newReputationPoints;
+            }
+        }
 
         public async Task LogOut()
         {
