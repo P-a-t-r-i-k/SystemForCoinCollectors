@@ -7,11 +7,25 @@
 @rendermode @(new InteractiveServerRenderMode(false))
 
 @page "/search-users"
+<PageTitle>Search For Users</PageTitle>
 
-<h3>Users</h3>
+<label class="bold-text">Filter users by:</label><br>
 
-<input type="text" @bind="SearchText" @bind:event="oninput">
-@* <InputText @bind-Value="SearchText" @bind-Value:event="oninput" class="form-control">Start typing here...</InputText> *@
+<InputRadioGroup @bind-Value="_filterBy">
+    <InputRadio Value="_username" /> @_username
+    <br>
+    <InputRadio Value="_firstName" /> @_firstName
+    <br>
+    <InputRadio Value="_lastName" /> @_lastName
+    <br>
+    <AuthorizeView Roles="Admin">
+        <InputRadio Value="_email" /> @_email
+        <br>
+    </AuthorizeView>
+</InputRadioGroup>
+
+<label class="bold-text">Search for users</label><br>
+<input class="search-bar" type="text" @bind="SearchText" @bind:event="oninput" placeholder="@_filterBy">
 
 @if (_allUsers == null || _filteredUsers == null)
 {
@@ -26,22 +40,48 @@ else
     <table>
         <tr>
             <th>Username</th>
+            <AuthorizeView>
+                <th>Email</th>
+            </AuthorizeView>
             <th>First Name</th>
             <th>Last Name</th>
+            <AuthorizeView Roles="Admin">
+                <th>Action</th>
+            </AuthorizeView>
         </tr>
         
         @foreach (var user in _filteredUsers)
         {
             <tr>
                 <td>@user.UserName</td>
+                
+                <AuthorizeView>
+                    <td>@user.Email</td>
+                </AuthorizeView>
+
                 <td>@user.Name</td>
                 <td>@user.Surname</td>
+                
+                <AuthorizeView Roles="Admin">
+                    <td>
+                        <a href="/admin-user-change/@user.Id">
+                            <button class="btn btn-primary purple-button">Admin Action</button>
+                        </a>
+                    </td>
+                </AuthorizeView>
             </tr>
         }
     </table>
 }
 
 @code {
+    private const string _username = "Username";
+    private const string _firstName = "First Name";
+    private const string _lastName = "Last Name";
+    private const string _email = "E-mail";
+
+    private string _filterBy = "";
+
     private string _searchText = "";
 
     public string SearchText
@@ -60,6 +100,8 @@ else
     {
         _allUsers = await UserService.GetAllUsers();
         _filteredUsers = _allUsers;
+
+        _filterBy = _username;
     }
 
     private void FilterUsers()
@@ -71,7 +113,25 @@ else
         }
         else
         {
-            _filteredUsers = _allUsers.Where(item => item.UserName.StartsWith(_searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            switch (_filterBy)
+            {
+                case _firstName:
+                    _filteredUsers = _allUsers.Where(item => item.Name != null && item.Name.StartsWith(_searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                    break;
+
+                case _lastName:
+                    _filteredUsers = _allUsers.Where(item => item.Surname != null && item.Surname.StartsWith(_searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                    break;
+
+                case _email:
+                    _filteredUsers = _allUsers.Where(item => item.Email != null && item.Email.StartsWith(_searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                    break;
+
+                default:
+                    _filteredUsers = _allUsers.Where(item => item.UserName != null && item.UserName.StartsWith(_searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                    break;
+            }
+            
         }
     }
 }
