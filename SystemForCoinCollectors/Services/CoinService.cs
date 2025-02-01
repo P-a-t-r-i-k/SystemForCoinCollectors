@@ -31,6 +31,12 @@ namespace SystemForCoinCollectors.Services
             return years;
         }
 
+        public Task<List<string>> GetCountries()
+        {
+            var countries = _context.Coins.Select(coin => coin.Country).Distinct().ToListAsync();
+            return countries;
+        }
+
         public async Task<Coin> AddCoin(Coin coin)
         {
             _context.Coins.Add(coin);

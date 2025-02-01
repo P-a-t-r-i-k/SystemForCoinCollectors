@@ -1,0 +1,281 @@
+﻿@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject ICoinService CoinService
+@inject IAlbumService AlbumService
+@inject IAlbumCoinService AlbumCoinService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@page "/search-coin"
+<PageTitle>Search Coin</PageTitle>
+
+<h3>Coin Search</h3>
+
+@if (Countries == null || Years == null)
+{
+    <span>Loading...</span>
+}
+else if (Countries.Count == 0)
+{
+    <span>No country was found in the database. For more information please contact our support team.</span>
+}
+else if (Years.Count == 0)
+{
+    <span>No year was found in the database. For more information please contact our support team.</span>
+}
+else
+{
+    <EditForm Model="SearchCoinM" OnValidSubmit="HandleValidSubmit" FormName="SearchCoinForm">
+        <div class="form-group">
+            <label class="combo-box-label">Year:</label>
+            <InputSelect @bind-Value="SearchCoinM.SelectedYear" class="form-control">
+                <option value="" disabled>Select a Year</option>
+                @foreach (string year in Years)
+                {
+                    <option value="@year">@year</option>
+                }
+            </InputSelect>
+        </div>
+    
+        <div class="form-group">
+            <label class="combo-box-label">Country:</label>
+            <InputSelect @bind-Value="SearchCoinM.SelectedCountry" class="form-control">
+                <option value="" disabled>Select a Country</option>
+                @foreach (string country in Countries)
+                {
+                    <option value="@country">@country</option>
+                }
+            </InputSelect>
+        </div>
+        
+        <AuthorizeView Context="authContext">
+            <Authorized>
+                <InputRadioGroup @bind-Value="_searchIn">
+                    <InputRadio Value="_allCoins"/> @_allCoins
+                    <br>
+                    <InputRadio Value="_ownedCoins"/> @_ownedCoins
+                    <br>
+                    <InputRadio Value="_missingCoins"/> @_missingCoins
+                    <br>
+                    <InputRadio Value="_duplicateCoins"/> @_duplicateCoins
+                    <br>
+                    <InputRadio Value="_wishlistedCoins"/> @_wishlistedCoins
+                    <br>
+                </InputRadioGroup>
+            </Authorized>
+        </AuthorizeView>
+    
+        <button type="submit" class="btn btn-primary purple-button">Search</button>
+        
+        <span>@FilteredCoins.Count</span>
+
+        @if (FilteredCoins.Count > 0)
+        {
+            <div class="container">
+                @{
+                    _currentCoinIndex = (_currentPage - 1) * (_defaultNumberOfRows * _defaultNumberOfColumns);
+                }
+
+                @for (int i = 0; i < _defaultNumberOfRows; i++)
+                {
+                    string removeString = "wwwroot/";
+
+                    <div class="row">
+                        @for (int j = 0; j < _defaultNumberOfColumns; j++)
+                        {
+                            @if (_currentCoinIndex < FilteredCoins.Count)
+                            {
+                                Coin coin = FilteredCoins.ElementAt(_currentCoinIndex);
+                                string imgPath = coin.ImagePath;
+                                int length = removeString.Length;
+
+                                @if (imgPath.Contains(removeString))
+                                {
+                                    imgPath = coin.ImagePath.Substring(length - 1);
+                                }
+
+                                string coinStatus = "unobtained";
+                                bool isInCollection = CoinsInAlbum.Contains(coin);
+                                if (isInCollection)
+                                {
+                                    coinStatus = "obtained";
+                                }
+
+                                <div class="col">
+                                    <div class="card d-flex flex-column justify-content-center align-items-center">
+                                        <a href="/coin-details/@coin.Id">
+                                            <img class="coinImage @coinStatus" src=@imgPath>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+
+                            _currentCoinIndex++;
+                        }
+                    </div>
+                }
+
+                <div class="row">
+                    <div class="col prevNext">
+                        <button type="button" class="btn" disabled="@_previousPageDisabled" @onclick="PreviousPage">←</button>
+                        <span>@_currentPage/@_lastPage</span>
+                        <button type="button" class="btn" disabled="@_nextPageDisabled" @onclick="NextPage">→</button>
+                    </div>
+                </div>
+            </div>
+        }
+        
+    </EditForm>
+}
+
+@code {
+    private const string _allYears = "All years";
+    private const string _allCountries = "All countries";
+
+    private const string _allCoins = "All coins";
+    private const string _ownedCoins = "Owned coins";
+    private const string _missingCoins = "Missing coins";
+    private const string _duplicateCoins = "Duplicate coins";
+    private const string _wishlistedCoins = "Wishlisted coins";
+
+    private string _searchIn = "";
+    private int _defaultNumberOfRows = 3;
+    private int _defaultNumberOfColumns = 5;
+    private int _currentCoinIndex = 0;
+    private int _currentPage = 1;
+    private int _lastPage = 1;
+    private bool _previousPageDisabled = true;
+    private bool _nextPageDisabled = true;
+
+    [SupplyParameterFromForm]
+    public SearchCoinModel SearchCoinM { get; set; } = new();
+
+    public class SearchCoinModel
+    {
+        public string SelectedYear { get; set; }
+        public string SelectedCountry { get; set; }
+    }
+
+    public List<string>? Countries = null;
+    public List<string>? Years = null;
+    public List<Coin> FilteredCoins = new();
+    public List<Coin> AllCoins = new();
+    public List<Coin> CoinsInAlbum = new();
+
+    public async void HandleValidSubmit()
+    {
+        FilteredCoins = AllCoins.Select(item => item).ToList();
+
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId != null)
+        {
+            int albumId;
+            switch (_searchIn)
+            {
+                case _ownedCoins:
+                    albumId = await AlbumService.GetCollectionAlbumTypeId();
+                    break;
+
+                case _duplicateCoins:
+                    albumId = await AlbumService.GetDuplicateAlbumTypeId();
+                    break;
+
+                case _wishlistedCoins:
+                    albumId = await AlbumService.GetWishlistAlbumTypeId();
+                    break;
+
+                default:
+                    albumId = await AlbumService.GetCollectionAlbumTypeId();
+                    break;
+            }
+
+            List<CoinAlbum> userAlbums = AlbumService.GetAllUserAlbums(userId).ToList();
+            CoinAlbum? wantedAlbum = userAlbums.Where(item => item.AlbumTypeId == albumId).FirstOrDefault();
+            if (wantedAlbum != null && _searchIn != _allCoins)
+            {
+                CoinsInAlbum = await AlbumCoinService.GetCoinIdsInAlbum(wantedAlbum.Id);
+                if (_searchIn == _missingCoins)
+                {
+                    FilteredCoins = AllCoins.Where(item => !CoinsInAlbum.Contains(item)).ToList();
+                }
+                else
+                {
+                    FilteredCoins = CoinsInAlbum.Select(item => item).ToList();
+                }
+            }
+        }
+
+        if (SearchCoinM.SelectedYear != _allYears)
+        {
+            FilteredCoins = FilteredCoins.Where(item => item.IssuingYear == SearchCoinM.SelectedYear).ToList();
+        }
+
+        if (SearchCoinM.SelectedCountry != _allCountries)
+        {
+            FilteredCoins = FilteredCoins.Where(item => item.Country == SearchCoinM.SelectedCountry).ToList();
+        }
+
+        FilteredCoins = FilteredCoins.OrderBy(item => item.Country).ToList();
+        _currentPage = 1;
+        _lastPage = FilteredCoins.Count / (_defaultNumberOfColumns * _defaultNumberOfRows) + 1;
+        if (_lastPage > _currentPage)
+        {
+            _previousPageDisabled = true;
+            _nextPageDisabled = false;
+        }
+        else
+        {
+            _previousPageDisabled = true;
+            _nextPageDisabled = true;
+        }
+        
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Years = await CoinService.GetYears();
+        Years.Insert(0, _allYears);
+        Countries = await CoinService.GetCountries();
+        Countries.Insert(0, _allCountries);
+        _searchIn = _allCoins;
+        SearchCoinM.SelectedCountry = _allCountries;
+        SearchCoinM.SelectedYear = _allYears;
+
+        AllCoins = await CoinService.GetAllCoins();
+    }
+
+    private void PreviousPage()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+            if (_currentPage == 1)
+            {
+                _previousPageDisabled = true;
+            }
+        }
+
+        _nextPageDisabled = false;
+    }
+
+    private void NextPage()
+    {
+        if (_currentPage < _lastPage)
+        {
+            _currentPage++;
+            if (_currentPage == _lastPage)
+            {
+                _nextPageDisabled = true;
+            }
+        }
+
+        _previousPageDisabled = false;
+    }
+}
