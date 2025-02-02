@@ -9,6 +9,8 @@ namespace SystemForCoinCollectors.Services
         Task<List<string>> GetYears();
         Task<List<string>> GetCountries();
         Task<Coin> AddCoin(Coin coin);
+        Task UpdateCoin(int id, Coin newCoin);
+        Task DeleteCoin(int id);
         Task<Coin?> GetById(int id);
     }
 }

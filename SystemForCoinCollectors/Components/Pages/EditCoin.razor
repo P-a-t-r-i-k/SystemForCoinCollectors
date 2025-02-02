@@ -1,16 +1,24 @@
-﻿@page "/edit-coin"
+﻿@page "/create-coin"
 @page "/edit-coin/{id:int}"
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
+
 @using SystemForCoinCollectors.Data
 @using SystemForCoinCollectors.Services
+
 @inject ICoinService CoinService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
 
-<h3>Create Coin</h3>
+<PageTitle>@_heading</PageTitle>
+<h3>@_heading</h3>
 
-@if (_coinAddedSuccessfully)
+@if (_coinChangeSuccessfull)
 {
     <div class="alert alert-success alert-dismissible">
-        <a href="/edit-coin" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        Coin has been successfully added to the collection.
+        <a href="/create-coin" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        @_successMessage
     </div>
 }
 
@@ -37,7 +45,7 @@
 
     <div class="form-group">
         <label>Image</label>
-        <InputFile name="File" class="form-control form-control-file"></InputFile>
+        <InputFile OnChange="HandleFileSelection" class="form-control form-control-file"></InputFile>
     </div>
 
     <div class="form-group">
@@ -49,20 +57,28 @@
                 <option value="@country">@country</option>
             }
         </InputSelect>
-
     </div>
 
     <button type="submit" class="btn btn-primary submit-button">Submit</button>
 </EditForm>
 
+<button class="btn btn-danger" @onclick="RemoveCoin">Delete</button>
+
 @code {
-    bool _coinAddedSuccessfully = false;
+    bool _coinChangeSuccessfull = false;
+    private string _uriAbsolutePath = "";
+    private const string _editCoin = "/edit-coin";
+
+    private string _heading = "";
+    private string _successMessage = "";
 
     [Parameter]
     public int? Id { get; set; }
 
-    [SupplyParameterFromForm]
-    public IFormFile File { get; set; }
+    // [SupplyParameterFromForm]
+    // public IFormFile ImageFile { get; set; }
+
+    public IBrowserFile ImageFile { get; set; }
 
     [SupplyParameterFromForm]
     Coin Coin { get; set; } = new Coin()
@@ -70,6 +86,8 @@
         Feature = string.Empty,
         Description = string.Empty,
     };
+
+    public bool FileWasChanged { get; set; } = false;
 
     string[] Countries = new[]
     {
@@ -81,23 +99,106 @@
 
     async Task HandleValidSubmit()
     {
-        string folderPath = "wwwroot/images/2_euro_coins/";
-        string filePath = Path.Combine(folderPath, File.FileName);
-        await using var stream = new FileStream(filePath, FileMode.Create);
-        await File.CopyToAsync(stream);
-        Coin.ImagePath = filePath;
-        await CoinService.AddCoin(Coin);
-        Reset();
+        if (_uriAbsolutePath.Contains(_editCoin))
+        {
+            if (FileWasChanged)
+            {
+                await ChangeImage();
+            }
 
-        _coinAddedSuccessfully = true;
+            if (Id != null)
+            {
+                await CoinService.UpdateCoin(Id.Value, Coin);
+                _successMessage = "Coin has been successfully edited.";
+            }
+        }
+        else
+        {
+            await ChangeImage();
+            await CoinService.AddCoin(Coin);
+            _successMessage = "Coin has been successfully added to the collection.";
+        }
+        
+        Reset();
+        _coinChangeSuccessfull = true;
     }
 
-    void Reset()
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavigationManager.Uri;
+        var newUri = new Uri(uri);
+        _uriAbsolutePath = newUri.AbsolutePath;
+
+        if (_uriAbsolutePath.Contains(_editCoin) && Id != null)
+        {
+            Console.WriteLine($"Id is: {Id.Value}");
+            Coin? coin = await CoinService.GetById(Id.Value);
+            if (coin != null)
+            {
+                Coin = coin;
+            }
+
+            _heading = "Edit Coin";
+        }
+        else
+        {
+            _heading = "Create Coin";
+        }
+    }
+
+    private void Reset()
     {
         Coin.Feature = "";
         Coin.Description = "";
         Coin.IssuingVolume = "";
         Coin.IssuingYear = "";
         Coin.Country = Countries[0];
+    }
+
+    private async Task RemoveCoin()
+    {
+        if (Id != null)
+        {
+            bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure?"); // Confirm
+            if (confirmed)
+            {
+                await CoinService.DeleteCoin(Id.Value);
+                _successMessage = "Coin has been successfully removed from the collection.";
+            }
+            
+        }
+    }
+
+    private async Task HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        ImageFile = e.File;
+
+        // using var memoryStream = new MemoryStream();
+        // await selectedFile.OpenReadStream().CopyToAsync(memoryStream);
+        // ImageFile = new FormFile(memoryStream, 0, selectedFile.Size, selectedFile.Name, selectedFile.Name);
+
+        // var stream = selectedFile.OpenReadStream();
+        // ImageFile = new FormFile(stream, 0, selectedFile.Size, selectedFile.Name, selectedFile.Name);
+        FileWasChanged = true;
+    }
+
+    private async Task ChangeImage()
+    {
+
+        string folderPath = "wwwroot/images/2_euro_coins/";
+        string filePath = Path.Combine(folderPath, "test.png");
+        
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await ImageFile.OpenReadStream().CopyToAsync(stream);
+
+        // using var fileStream = new FileStream(filePath, FileMode.Create);
+        // if (ImageFile.OpenReadStream() is MemoryStream memoryStream)
+        // {
+        //     memoryStream.Position = 0; // Reset position before copying
+        //     await memoryStream.CopyToAsync(fileStream);
+        // }
+        
+
+        Coin.ImagePath = filePath;
     }
 }

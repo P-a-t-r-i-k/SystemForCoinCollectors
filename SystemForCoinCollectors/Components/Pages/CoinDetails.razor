@@ -2,8 +2,13 @@
 @using SystemForCoinCollectors.Services
 
 @inject ICoinService CoinService
+@inject NavigationManager NavigationManager
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
 
 @page "/coin-details/{id:int}"
+<PageTitle>Coin Details</PageTitle>
 
 @if (_coin == null)
 {
@@ -36,6 +41,11 @@ else
     <p><span class="bold-text">Issuing volume: </span>@_coin.IssuingVolume</p>
     <p><span class="bold-text">Issuing year: </span>@_coin.IssuingYear</p>
     <p><span class="bold-text">Country: </span>@_coin.Country</p>
+
+    <AuthorizeView Roles="Admin">
+        <button class="btn btn-primary purple-button" @onclick="HandleEditCoin">Edit Coin</button>
+    </AuthorizeView>
+    
 }
 
 @code {
@@ -47,6 +57,11 @@ else
     protected async override Task OnInitializedAsync()
     {
         _coin = await CoinService.GetById(Id);
+    }
+
+    private void HandleEditCoin()
+    {
+        NavigationManager.NavigateTo($"/edit-coin/{Id}");
     }
 
 }

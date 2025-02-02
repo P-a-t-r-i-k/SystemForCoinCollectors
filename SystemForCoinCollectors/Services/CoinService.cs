@@ -45,6 +45,33 @@ namespace SystemForCoinCollectors.Services
             return coin;
         }
 
+        public async Task UpdateCoin(int id, Coin newCoin)
+        {
+            Coin? coinInDb = await GetById(id);
+            if (coinInDb != null)
+            {
+                coinInDb.Feature = newCoin.Feature;
+                coinInDb.Description = newCoin.Description;
+                coinInDb.IssuingVolume = newCoin.IssuingVolume;
+                coinInDb.IssuingYear = newCoin.IssuingYear;
+                coinInDb.Country = newCoin.Country;
+                coinInDb.ImagePath = newCoin.ImagePath;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteCoin(int id)
+        {
+            Coin? coin = await GetById(id);
+            if (coin != null)
+            {
+                _context.Remove(coin);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<Coin?> GetById(int id)
         {
             return _context.Coins.Where(coin => coin.Id == id).FirstOrDefault();
