@@ -11,45 +11,53 @@
 
 <PageTitle>Profile</PageTitle>
 
-<h3>Profile</h3>
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <h3>Profile</h3>
 
-<EditForm method="post" Model="EditProfileM" OnValidSubmit="EditAccount" FormName="deleteUser" Enhance>
-    <DataAnnotationsValidator />
+        <EditForm method="post" Model="EditProfileM" OnValidSubmit="EditAccount" FormName="deleteUser" Enhance>
+            <DataAnnotationsValidator />
     
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="EditProfileM.UserName" class="form-control" placeholder="Username" disabled="true"></InputText>
-        <label for="username" class="form-label">Username</label>
-    </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="EditProfileM.UserName" class="form-control" placeholder="Username" disabled="true"></InputText>
+                <label for="username" class="form-label">Username</label>
+            </div>
 
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="EditProfileM.FirstName" class="form-control" placeholder="First Name"></InputText>
-        <label for="firstname" class="form-label">First Name</label>
-        <ValidationMessage For="() => EditProfileM.FirstName" class="text-danger" />
-    </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="EditProfileM.FirstName" class="form-control" placeholder="First Name"></InputText>
+                <label for="firstname" class="form-label">First Name</label>
+                <ValidationMessage For="() => EditProfileM.FirstName" class="text-danger" />
+            </div>
     
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="EditProfileM.LastName" class="form-control" placeholder="Last Name"></InputText>
-        <label for="lastname" class="form-label">Last Name</label>
-        <ValidationMessage For="() => EditProfileM.LastName" class="text-danger" />
-    </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="EditProfileM.LastName" class="form-control" placeholder="Last Name"></InputText>
+                <label for="lastname" class="form-label">Last Name</label>
+                <ValidationMessage For="() => EditProfileM.LastName" class="text-danger" />
+            </div>
     
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="EditProfileM.Address" class="form-control" placeholder="Address"></InputText>
-        <label for="address" class="form-label">Address</label>
-        <ValidationMessage For="() => EditProfileM.Address" class="text-danger" />
-    </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="EditProfileM.Address" class="form-control" placeholder="Address"></InputText>
+                <label for="address" class="form-label">Address</label>
+                <ValidationMessage For="() => EditProfileM.Address" class="text-danger" />
+            </div>
 
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="EditProfileM.Email" class="form-control" placeholder="Email"></InputText>
-        <label for="email" class="form-label">Email</label>
-        <ValidationMessage For="() => EditProfileM.Email" class="text-danger" />
-        <span class="text-danger">@_emailErrorMessage</span>
-    </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="EditProfileM.Email" class="form-control" placeholder="Email"></InputText>
+                <label for="email" class="form-label">Email</label>
+                <ValidationMessage For="() => EditProfileM.Email" class="text-danger" />
+                <span class="text-danger">@_emailErrorMessage</span>
+            </div>
 
-    <button type="submit" class="btn btn-primary">Save changes</button>
-</EditForm>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+        </EditForm>
 
-<button class="btn btn-danger" @onclick="DeleteAccount">Delete Account</button>
+        <button class="btn btn-danger" @onclick="DeleteAccount">Delete Account</button>
+    </Authorized>
+    
+    <NotAuthorized>
+        <NotLoggedIn />
+    </NotAuthorized>
+</AuthorizeView>
 
 @code
 {

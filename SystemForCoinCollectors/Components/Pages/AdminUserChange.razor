@@ -14,78 +14,86 @@
 
 <PageTitle>Admin User Change</PageTitle>
 
-@if (EditedUser == null)
-{
-    <span>User with id="@UserId" doesn't exist in database!</span>
-}
-else
-{
-    <EditForm method="post" Model="AdminUserChangeM" OnValidSubmit="AddRecordToDb" FormName="adminUserChange" Enhance>
-        <DataAnnotationsValidator />
-        <label class="bold-text username-text">Edited user:</label>
-        <label class="username-text">@EditedUser.UserName</label><br>
-
-        <label class="bold-text gap">Choose the action(s) you would like to take.</label><br>
-        <label title="Check if you want to change user data e.g. e-mail.">
-            <InputCheckbox @bind-Value="ChangingData" />
-            Changing data
-        </label><br>
-
-        <label title="Check if you want to add reputation points to the user.">
-            <InputCheckbox @bind-Value="AddingRP" disabled="@RemovingRP" />
-            Adding reputation points
-        </label><br>
-
-        <label title="Check if you want to remove reputation points from the user.">
-            <InputCheckbox @bind-Value="RemovingRP" disabled="@AddingRP" />
-            Removing reputation points
-        </label><br>
-
-        <label title="Check if you want to ban the user.">
-            <InputCheckbox @bind-Value="BanningUser" />
-            Banning user
-        </label><br>
-
-        @if (ChangingData)
+<AuthorizeView Context="authContext" Roles="Admin">
+    <Authorized>
+        @if (EditedUser == null)
         {
-            <div class="form-floating mb-3">
-                <InputText id="oldEmail" @bind-Value="AdminUserChangeM.OldEmail" class="form-control gap" placeholder="Email" disabled="true"></InputText>
-                <label for="oldEmail" class="form-label">Current Email</label>
-                <ValidationMessage For="() => AdminUserChangeM.OldEmail" class="text-danger" />
-            </div>
-
-            <div class="form-floating mb-3">
-                <InputText id="newEmail" @bind-Value="AdminUserChangeM.NewEmail" class="form-control gap" placeholder="Email"></InputText>
-                <label for="newEmail" class="form-label">New Email</label>
-                <ValidationMessage For="() => AdminUserChangeM.NewEmail" class="text-danger" />
-            </div>
+            <span>User with id="@UserId" doesn't exist in database!</span>
         }
-
-        @if (AddingRP || RemovingRP)
+        else
         {
-            <div class="gap">
-                <label class="bold-text">@AddRemoveRPMessage</label>
-                <InputNumber @bind-Value="@AdminUserChangeM.ReputationPointsToAdd"></InputNumber>
-                <ValidationMessage For="() => AdminUserChangeM.ReputationPointsToAdd" class="text-danger" />
-            </div>
+            <EditForm method="post" Model="AdminUserChangeM" OnValidSubmit="AddRecordToDb" FormName="adminUserChange" Enhance>
+                <DataAnnotationsValidator />
+                <label class="bold-text username-text">Edited user:</label>
+                <label class="username-text">@EditedUser.UserName</label><br>
+
+                <label class="bold-text gap">Choose the action(s) you would like to take.</label><br>
+                <label title="Check if you want to change user data e.g. e-mail.">
+                    <InputCheckbox @bind-Value="ChangingData" />
+                    Changing data
+                </label><br>
+
+                <label title="Check if you want to add reputation points to the user.">
+                    <InputCheckbox @bind-Value="AddingRP" disabled="@RemovingRP" />
+                    Adding reputation points
+                </label><br>
+
+                <label title="Check if you want to remove reputation points from the user.">
+                    <InputCheckbox @bind-Value="RemovingRP" disabled="@AddingRP" />
+                    Removing reputation points
+                </label><br>
+
+                <label title="Check if you want to ban the user.">
+                    <InputCheckbox @bind-Value="BanningUser" />
+                    Banning user
+                </label><br>
+
+                @if (ChangingData)
+                {
+                    <div class="form-floating mb-3">
+                        <InputText id="oldEmail" @bind-Value="AdminUserChangeM.OldEmail" class="form-control gap" placeholder="Email" disabled="true"></InputText>
+                        <label for="oldEmail" class="form-label">Current Email</label>
+                        <ValidationMessage For="() => AdminUserChangeM.OldEmail" class="text-danger" />
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <InputText id="newEmail" @bind-Value="AdminUserChangeM.NewEmail" class="form-control gap" placeholder="Email"></InputText>
+                        <label for="newEmail" class="form-label">New Email</label>
+                        <ValidationMessage For="() => AdminUserChangeM.NewEmail" class="text-danger" />
+                    </div>
+                }
+
+                @if (AddingRP || RemovingRP)
+                {
+                    <div class="gap">
+                        <label class="bold-text">@AddRemoveRPMessage</label>
+                        <InputNumber @bind-Value="@AdminUserChangeM.ReputationPointsToAdd"></InputNumber>
+                        <ValidationMessage For="() => AdminUserChangeM.ReputationPointsToAdd" class="text-danger" />
+                    </div>
+                }
+
+                <div class="form-group gap">
+                    <label for="description" class="bold-text" title="Please provide a reason for your action(s).">Description</label>
+                    <InputTextArea id="description" @bind-Value="AdminUserChangeM.Description" class="form-control" rows="6">@AdminUserChangeM.Description</InputTextArea>
+                    <ValidationMessage For="() => AdminUserChangeM.Description" class="text-danger" />
+                </div>
+
+                @if (BanningUser)
+                {
+                    <div class="alert alert-warning gap">
+                        If you ban the user, they will no longer be able to log into their account!
+                    </div>
+                }
+
+                <button type="submit" class="btn btn-primary purple-button gap">Save changes</button>
+            </EditForm>
         }
-
-        <div class="form-group gap">
-            <label for="description" class="bold-text" title="Please provide a reason for your action(s).">Description</label>
-            <InputTextArea id="description" @bind-Value="AdminUserChangeM.Description" class="form-control" rows="6">@AdminUserChangeM.Description</InputTextArea>
-            <ValidationMessage For="() => AdminUserChangeM.Description" class="text-danger" />
-        </div>
-
-        @if (BanningUser)
-        {
-            <div class="alert alert-warning gap">
-                If you ban the user, they will no longer be able to log into their account!
-            </div>
-        }
-
-        <button type="submit" class="btn btn-primary purple-button gap">Save changes</button>
-    </EditForm>
-}
+    </Authorized>
+    
+    <NotAuthorized>
+        <UnauthorizedAccess />
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     public bool ChangingData { get; set; }

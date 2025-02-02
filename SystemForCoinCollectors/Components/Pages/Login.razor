@@ -88,7 +88,7 @@
         var result = await SignInManager.PasswordSignInAsync(UserM.UserName, UserM.Password, false, false);
         if (result.Succeeded)
         {
-            NavigationManager.NavigateTo("/my-collection");
+            NavigationManager.NavigateTo("/home");
         }
         else
         {

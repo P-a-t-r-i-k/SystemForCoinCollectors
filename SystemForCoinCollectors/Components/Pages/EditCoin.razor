@@ -12,57 +12,66 @@
 @inject IJSRuntime JsRuntime
 
 <PageTitle>@_heading</PageTitle>
-<h3>@_heading</h3>
 
-@if (_coinChangeSuccessfull)
-{
-    <div class="alert alert-success alert-dismissible">
-        <a href="/create-coin" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        @_successMessage
-    </div>
-}
+<AuthorizeView Roles="Admin" Context="authContext">
+    <Authorized>
+        <h3>@_heading</h3>
 
-<EditForm Model="Coin" enctype="multipart/form-data" OnValidSubmit="HandleValidSubmit" FormName="EditCoin">
-    <div class="form-group">
-        <label for="feature">Feature</label>
-        <InputText id="feature" @bind-Value="Coin.Feature" class="form-control">@Coin.Feature</InputText>
-    </div>
+        @if (_coinChangeSuccessfull)
+        {
+            <div class="alert alert-success alert-dismissible">
+                <a href="/create-coin" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                @_successMessage
+            </div>
+        }
 
-    <div class="form-group">
-        <label for="description">Description</label>
-        <InputTextArea id="description" @bind-Value="Coin.Description" class="form-control" rows="6">@Coin.Description</InputTextArea>
-    </div>
+        <EditForm Model="Coin" enctype="multipart/form-data" OnValidSubmit="HandleValidSubmit" FormName="EditCoin">
+            <div class="form-group">
+                <label for="feature">Feature</label>
+                <InputText id="feature" @bind-Value="Coin.Feature" class="form-control">@Coin.Feature</InputText>
+            </div>
 
-    <div class="form-group">
-        <label for="issuingVolume">Issuing Volume</label>
-        <InputText id="issuingVolume" @bind-Value="Coin.IssuingVolume" class="form-control">@Coin.IssuingVolume</InputText>
-    </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <InputTextArea id="description" @bind-Value="Coin.Description" class="form-control" rows="6">@Coin.Description</InputTextArea>
+            </div>
 
-    <div class="form-group">
-        <label for="issuingYear">Issuing Year</label>
-        <InputText id="issuingYear" @bind-Value="Coin.IssuingYear" class="form-control">@Coin.IssuingYear</InputText>
-    </div>
+            <div class="form-group">
+                <label for="issuingVolume">Issuing Volume</label>
+                <InputText id="issuingVolume" @bind-Value="Coin.IssuingVolume" class="form-control">@Coin.IssuingVolume</InputText>
+            </div>
 
-    <div class="form-group">
-        <label>Image</label>
-        <InputFile OnChange="HandleFileSelection" class="form-control form-control-file"></InputFile>
-    </div>
+            <div class="form-group">
+                <label for="issuingYear">Issuing Year</label>
+                <InputText id="issuingYear" @bind-Value="Coin.IssuingYear" class="form-control">@Coin.IssuingYear</InputText>
+            </div>
 
-    <div class="form-group">
-        <label for="country">Country</label>
-        <InputSelect id="country" @bind-Value="Coin.Country" class="form-control">
-            <option value="" disabled>Select a Country</option>
-            @foreach (string country in Countries)
-            {
-                <option value="@country">@country</option>
-            }
-        </InputSelect>
-    </div>
+            <div class="form-group">
+                <label>Image</label>
+                <InputFile OnChange="HandleFileSelection" class="form-control form-control-file"></InputFile>
+            </div>
 
-    <button type="submit" class="btn btn-primary submit-button">Submit</button>
-</EditForm>
+            <div class="form-group">
+                <label for="country">Country</label>
+                <InputSelect id="country" @bind-Value="Coin.Country" class="form-control">
+                    <option value="" disabled>Select a Country</option>
+                    @foreach (string country in Countries)
+                    {
+                        <option value="@country">@country</option>
+                    }
+                </InputSelect>
+            </div>
 
-<button class="btn btn-danger" @onclick="RemoveCoin">Delete</button>
+            <button type="submit" class="btn btn-primary submit-button">Submit</button>
+        </EditForm>
+
+        <button class="btn btn-danger" @onclick="RemoveCoin">Delete</button>
+    </Authorized>
+    
+    <NotAuthorized>
+        <UnauthorizedAccess />
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     bool _coinChangeSuccessfull = false;
