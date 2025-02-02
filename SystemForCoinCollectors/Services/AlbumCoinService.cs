@@ -50,5 +50,11 @@ namespace SystemForCoinCollectors.Services
 
             return false;
         }
+
+        public async Task<List<AdminChangesInUserTableHistory>> GetAllRecords()
+        {
+            var allRecords = await _context.AdminChangesInUserTableHistory.ToListAsync();
+            return allRecords;
+        }
     }
 }

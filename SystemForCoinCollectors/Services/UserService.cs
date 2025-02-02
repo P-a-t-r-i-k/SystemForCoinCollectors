@@ -86,5 +86,16 @@ namespace SystemForCoinCollectors.Services
                 await _context.SaveChangesAsync();
             }
         }
+
+        public string GetUsername(string id)
+        {
+            ApplicationUser? user = _context.Users.FirstOrDefault(item => item.Id == id);
+            
+            if (user == null || user.UserName == null)
+            {
+                return "";
+            }
+            return user.UserName;
+        }
     }
 }
