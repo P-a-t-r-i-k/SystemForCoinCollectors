@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemForCoinCollectors.Data;
 
@@ -11,9 +12,11 @@ using SystemForCoinCollectors.Data;
 namespace SystemForCoinCollectors.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250203103937_UpdateAlbumTable")]
+    partial class UpdateAlbumTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -363,7 +366,8 @@ namespace SystemForCoinCollectors.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AlbumTypeId");
+                    b.HasIndex("AlbumTypeId")
+                        .IsUnique();
 
                     b.HasIndex("ApplicationUserId");
 
@@ -453,9 +457,9 @@ namespace SystemForCoinCollectors.Migrations
 
             modelBuilder.Entity("SystemForCoinCollectors.Data.CoinAlbum", b =>
                 {
-                    b.HasOne("SystemForCoinCollectors.Data.AlbumType", "AlbumType")
-                        .WithMany("CoinAlbums")
-                        .HasForeignKey("AlbumTypeId")
+                    b.HasOne("SystemForCoinCollectors.Data.AlbumType", null)
+                        .WithOne("CoinAlbum")
+                        .HasForeignKey("SystemForCoinCollectors.Data.CoinAlbum", "AlbumTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -463,14 +467,13 @@ namespace SystemForCoinCollectors.Migrations
                         .WithMany("CoinAlbums")
                         .HasForeignKey("ApplicationUserId");
 
-                    b.Navigation("AlbumType");
-
                     b.Navigation("ApplicationUser");
                 });
 
             modelBuilder.Entity("SystemForCoinCollectors.Data.AlbumType", b =>
                 {
-                    b.Navigation("CoinAlbums");
+                    b.Navigation("CoinAlbum")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SystemForCoinCollectors.Data.ApplicationUser", b =>

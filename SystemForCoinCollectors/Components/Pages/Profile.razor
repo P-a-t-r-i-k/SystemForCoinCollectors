@@ -8,6 +8,7 @@
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
 
 <PageTitle>Profile</PageTitle>
 
@@ -110,6 +111,12 @@
 
     public async Task DeleteAccount()
     {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Your account will be deleted permanently. Are you sure to continue?");
+        if (!confirmed)
+        {
+            return;
+        }
+
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authenticationState.User;
 

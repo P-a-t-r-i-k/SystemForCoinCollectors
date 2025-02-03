@@ -6,6 +6,6 @@
         public required string Type { get; set; }
 
         // navigation properties
-        public CoinAlbum CoinAlbum { get; set; }
+        public ICollection<CoinAlbum> CoinAlbums { get; set; }
     }
 }

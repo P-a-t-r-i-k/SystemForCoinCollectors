@@ -3,6 +3,8 @@
 @using SystemForCoinCollectors.Data
 @using SystemForCoinCollectors.Services
 
+@inject IAlbumService AlbumService
+
 @page "/register"
 
 <PageTitle>Register</PageTitle>
@@ -103,9 +105,9 @@
             return;
         }
 
-        var user = CreateUser();
+        var user = await UserService.CreateUser();
 
-        // TODO Add email confirmation.
+        // Email confirmation.
         user.EmailConfirmed = true;
 
         await UserStore.SetUserNameAsync(user, UserM.UserName, CancellationToken.None);
@@ -123,22 +125,9 @@
             return;
         }
 
+        await AlbumService.CreateAlbumsForNewUser(user);
         await SignInManager.SignInAsync(user, isPersistent: false);
-        NavigationManager.NavigateTo("/my-collection");
-    }
-
-
-    private ApplicationUser CreateUser()
-    {
-        try
-        {
-            return Activator.CreateInstance<ApplicationUser>();
-        }
-        catch
-        {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                                                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
-        }
+        NavigationManager.NavigateTo("/home");
     }
 
     private IUserEmailStore<ApplicationUser> GetEmailStore()

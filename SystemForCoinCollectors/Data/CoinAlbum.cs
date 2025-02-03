@@ -6,7 +6,7 @@ namespace SystemForCoinCollectors.Data
     {
         public int Id { get; set; }
         
-        [ForeignKey("AlbumType")]
+        //[ForeignKey("AlbumType")]
         public int AlbumTypeId { get; set; }
 
         // navigation properties

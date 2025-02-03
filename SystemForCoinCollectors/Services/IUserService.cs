@@ -14,6 +14,7 @@ namespace SystemForCoinCollectors.Services
         public Task ChangeReputationPoints(string userId, int newReputationPoints);
         public Task LogOut();
         public Task Edit(ApplicationUser user, string oldUsername);
+        public Task<ApplicationUser> CreateUser();
         public string GetUsername(string id);
     }
 }

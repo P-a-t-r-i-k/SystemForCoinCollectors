@@ -11,12 +11,14 @@ namespace SystemForCoinCollectors.Services
     public class UserService : IUserService
     {
         private readonly ApplicationDbContext _context;
-        private SignInManager<ApplicationUser> _signInManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IAlbumService _albumService;
 
-        public UserService(ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
+        public UserService(ApplicationDbContext context, SignInManager<ApplicationUser> signInManager, IAlbumService albumService)
         {
             _context = context;
             _signInManager = signInManager;
+            _albumService = albumService;
         }
 
         public async Task<List<ApplicationUser>> GetAllUsers()
@@ -28,7 +30,13 @@ namespace SystemForCoinCollectors.Services
         public async Task DeleteUser(string username)
         {
             ApplicationUser userToDelete = _context.Users.Where(u => u.UserName == username).FirstOrDefault();
-            _context.Remove(userToDelete);
+
+            if (userToDelete != null)
+            {
+                await _albumService.DeleteUserAlbums(userToDelete);
+                _context.Remove(userToDelete);
+            }
+
             await _context.SaveChangesAsync();
         }
 
@@ -84,6 +92,23 @@ namespace SystemForCoinCollectors.Services
                 userInDb.UserName = user.UserName;
 
                 await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<ApplicationUser> CreateUser()
+        {
+            try
+            {
+                var user = Activator.CreateInstance<ApplicationUser>();
+
+                //_albumService.CreateAlbumsForNewUser(user);
+
+                return user;
+            }
+            catch
+            {
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                                                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
             }
         }
 

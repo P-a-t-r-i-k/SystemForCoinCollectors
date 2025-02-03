@@ -8,5 +8,7 @@ namespace SystemForCoinCollectors.Services
         public Task<int> GetCollectionAlbumTypeId();
         public Task<int> GetDuplicateAlbumTypeId();
         public Task<int> GetWishlistAlbumTypeId();
+        public Task CreateAlbumsForNewUser(ApplicationUser user);
+        public Task DeleteUserAlbums(ApplicationUser user);
     }
 }
