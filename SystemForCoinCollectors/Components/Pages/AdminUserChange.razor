@@ -22,6 +22,16 @@
         }
         else
         {
+            if (_errorMessages.Count > 0)
+            {
+                foreach (string errorMessage in _errorMessages)
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
+                    </div>
+                }
+            }
+
             <EditForm method="post" Model="AdminUserChangeM" OnValidSubmit="AddRecordToDb" FormName="adminUserChange" Enhance>
                 <DataAnnotationsValidator />
                 <label class="bold-text username-text">Edited user:</label>
@@ -98,6 +108,7 @@
 @code {
     public bool ChangingData { get; set; }
     public ApplicationUser? EditedUser { get; set; } = null;
+    private List<string> _errorMessages = new();
 
     private bool _addingRP = false;
     public bool AddingRP
@@ -148,8 +159,8 @@
         [EmailAddress(ErrorMessage = "Invalid e-mail address!")]
         public string NewEmail { get; set; } = "";
 
-        [Required]
-        public string Description { get; set; }
+        [Required(ErrorMessage = "Description is required!")]
+        public string Description { get; set; } = "";
 
         [Range(0, int.MaxValue, ErrorMessage = "Number should be greater than 0")]
         public int ReputationPointsToAdd { get; set; }
@@ -162,6 +173,11 @@
         var adminId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
         if (EditedUser == null)
+        {
+            return;
+        }
+
+        if (!ChangingData && !AddingRP && !RemovingRP && !BanningUser)
         {
             return;
         }
@@ -179,8 +195,17 @@
 
         if (ChangingData)
         {
-            changes.NewEmail = AdminUserChangeM.NewEmail;
-            await UserService.ChangeEmail(UserId, changes.NewEmail);
+            ApplicationUser? userInDb = await UserService.GetUserByEmail(AdminUserChangeM.NewEmail);
+            if (userInDb != null)
+            {
+                _errorMessages.Add("This e-mail is already used by another user!");
+                return;
+            }
+            else
+            {
+                changes.NewEmail = AdminUserChangeM.NewEmail;
+                await UserService.ChangeEmail(UserId, changes.NewEmail);
+            }
         }
 
         if (AddingRP)

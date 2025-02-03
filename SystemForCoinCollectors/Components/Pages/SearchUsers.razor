@@ -25,7 +25,7 @@
 </InputRadioGroup>
 
 <label class="bold-text">Search for users</label><br>
-<input class="search-bar" type="text" @bind="SearchText" @bind:event="oninput" placeholder="@_filterBy">
+<input class="search-bar form-control" type="text" @bind="SearchText" @bind:event="oninput" placeholder="@_filterBy">
 
 @if (_allUsers == null || _filteredUsers == null)
 {
