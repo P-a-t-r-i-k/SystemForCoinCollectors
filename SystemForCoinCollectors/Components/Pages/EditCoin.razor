@@ -79,10 +79,14 @@
                 <ValidationMessage For="() => CoinM.Country" />
             </div>
 
-            <button type="submit" class="btn btn-primary submit-button">Submit</button>
+            <button type="submit" class="btn btn-primary submit-button purple-button">Submit</button>
+            
+            @if (_uriAbsolutePath.Contains(_editCoin))
+            {
+                <button type="button" class="btn btn-danger delete-button" @onclick="RemoveCoin">Delete</button>
+            }
         </EditForm>
 
-        <button class="btn btn-danger" @onclick="RemoveCoin">Delete</button>
     </Authorized>
     
     <NotAuthorized>
@@ -214,7 +218,8 @@
             if (confirmed)
             {
                 await CoinService.DeleteCoin(Id.Value);
-                _successMessage = "Coin has been successfully removed from the collection.";
+                NavigationManager.NavigateTo("/create-coin");
+                //_successMessage = "Coin has been successfully removed from the collection.";
             }
         }
     }

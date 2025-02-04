@@ -1,8 +1,4 @@
-﻿body {
-
-}
-
-.form-group {
+﻿.form-group {
     margin-bottom: 15px;
 }
 
@@ -24,6 +20,12 @@
 .form-control-file {
     padding: 10px;
     font-size: 16px;
+}
+
+.purple-button {
+    background-color: rgb(97, 15, 100);
+    border-color: rgb(97, 15, 100);
+    color: white;
 }
 
 .submit-button {
@@ -48,7 +50,6 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-    /* Style for the form section */
     .edit-coin-form h3 {
         text-align: center;
         margin-bottom: 20px;
@@ -57,4 +58,10 @@
 
 .description-box {
     height: 200px;
+}
+
+.delete-button {
+    margin-left: 40px;
+    padding: 10px 20px;
+    font-size: 16px;
 }
