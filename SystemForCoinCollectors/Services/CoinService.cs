@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Linq;
+using System.Runtime.Serialization;
 using Microsoft.EntityFrameworkCore;
 using SystemForCoinCollectors.Data;
 
@@ -28,6 +29,12 @@ namespace SystemForCoinCollectors.Services
         public Task<List<string>> GetYears()
         {
             var years = _context.Coins.Select(coin => coin.IssuingYear).Distinct().ToListAsync();
+            return years;
+        }
+
+        public Task<List<string>> GetYearsDescending()
+        {
+            var years = _context.Coins.Select(coin => coin.IssuingYear).Distinct().OrderByDescending(item => item).ToListAsync();
             return years;
         }
 

@@ -53,24 +53,26 @@ else
         
         <AuthorizeView Context="authContext">
             <Authorized>
-                <InputRadioGroup @bind-Value="_searchIn">
-                    <InputRadio Value="_allCoins"/> @_allCoins
-                    <br>
-                    <InputRadio Value="_ownedCoins"/> @_ownedCoins
-                    <br>
-                    <InputRadio Value="_missingCoins"/> @_missingCoins
-                    <br>
-                    <InputRadio Value="_duplicateCoins"/> @_duplicateCoins
-                    <br>
-                    <InputRadio Value="_wishlistedCoins"/> @_wishlistedCoins
-                    <br>
-                </InputRadioGroup>
+                <div class="radio-buttons">
+                    <InputRadioGroup @bind-Value="_searchIn">
+                        <InputRadio Value="_allCoins"/> @_allCoins
+                        <br>
+                        <InputRadio Value="_ownedCoins"/> @_ownedCoins
+                        <br>
+                        <InputRadio Value="_missingCoins"/> @_missingCoins
+                        <br>
+                        <InputRadio Value="_duplicateCoins"/> @_duplicateCoins
+                        <br>
+                        <InputRadio Value="_wishlistedCoins"/> @_wishlistedCoins
+                        <br>
+                    </InputRadioGroup>
+                </div>
             </Authorized>
         </AuthorizeView>
     
         <button type="submit" class="btn btn-primary purple-button">Search</button>
         
-        <span>@FilteredCoins.Count</span>
+        @* <span>@FilteredCoins.Count</span> *@
 
         @if (FilteredCoins.Count > 0)
         {

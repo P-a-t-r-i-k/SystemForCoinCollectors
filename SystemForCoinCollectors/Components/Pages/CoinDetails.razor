@@ -47,17 +47,18 @@ else
     <p><span class="bold-text">Issuing year: </span>@_coin.IssuingYear</p>
     <p><span class="bold-text">Country: </span>@_coin.Country</p>
 
-    <AuthorizeView>
-        <div class="button-div d-flex justify-content-center flex-wrap gap-3">
+    <div class="button-div d-flex justify-content-center flex-wrap gap-3">
+        @if (User != null)
+        {
             <button class="btn btn-primary purple-button" @onclick="() => HandleAddRemoveButtonClick(CollectionAlbumTypeId)">@_collectionButtonText</button>
             <button class="btn btn-primary purple-button" @onclick="() => HandleAddRemoveButtonClick(DuplicateAlbumTypeId)">@_duplicatesButtonText</button>
             <button class="btn btn-primary purple-button" @onclick="() => HandleAddRemoveButtonClick(WishlistAlbumTypeId)">@_wishlistButtonText</button>
+        }
         
-            <AuthorizeView Context="adminContext" Roles="Admin">
-                <button class="edit-button btn btn-primary purple-button" @onclick="HandleEditCoin">Edit Coin</button>
-            </AuthorizeView>
-        </div>
-    </AuthorizeView>
+        <AuthorizeView Context="adminContext" Roles="Admin">
+            <button class="edit-button btn btn-primary purple-button" @onclick="HandleEditCoin">Edit Coin</button>
+        </AuthorizeView>
+    </div>
 }
 
 @code {
@@ -77,23 +78,22 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _coin = await CoinService.GetById(Id);
+
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authenticationState.User;
         var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-        if (userId == null)
+        if (userId != null)
         {
-            NavigationManager.NavigateTo("/error");
+            User = await UserService.GetUserById(userId);
+
+            CollectionAlbumTypeId = await AlbumService.GetCollectionAlbumTypeId();
+            DuplicateAlbumTypeId = await AlbumService.GetDuplicateAlbumTypeId();
+            WishlistAlbumTypeId = await AlbumService.GetWishlistAlbumTypeId();
+
+            SetButtonTextsOnInitialized();
         }
-
-        _coin = await CoinService.GetById(Id);
-        User = await UserService.GetUserById(userId);
-
-        CollectionAlbumTypeId = await AlbumService.GetCollectionAlbumTypeId();
-        DuplicateAlbumTypeId = await AlbumService.GetDuplicateAlbumTypeId();
-        WishlistAlbumTypeId = await AlbumService.GetWishlistAlbumTypeId();
-
-        SetButtonTextsOnInitialized();
     }
 
     private void HandleEditCoin()

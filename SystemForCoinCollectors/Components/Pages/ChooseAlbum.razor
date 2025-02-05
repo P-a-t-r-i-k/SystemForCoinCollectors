@@ -61,7 +61,7 @@
         if (userId != null)
         {
             List<CoinAlbum> userAlbums = AlbumService.GetAllUserAlbums(userId);
-            CoinAlbum? chosenAlbum = userAlbums.Where(item => item.AlbumTypeId == albumTypeId).FirstOrDefault();
+            CoinAlbum? chosenAlbum = userAlbums.FirstOrDefault(item => item.AlbumTypeId == albumTypeId);
 
             if (chosenAlbum != null)
             {
