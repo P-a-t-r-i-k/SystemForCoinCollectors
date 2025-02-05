@@ -5,12 +5,14 @@
 @rendermode @(new InteractiveServerRenderMode(false))
 
 @using System.ComponentModel.DataAnnotations
+@using System.Text
 @using SystemForCoinCollectors.Data
 @using SystemForCoinCollectors.Services
 
 @inject ICoinService CoinService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime
+@inject IWebHostEnvironment WebHostEnvironment
 
 <PageTitle>@_heading</PageTitle>
 
@@ -219,7 +221,6 @@
             {
                 await CoinService.DeleteCoin(Id.Value);
                 NavigationManager.NavigateTo("/create-coin");
-                //_successMessage = "Coin has been successfully removed from the collection.";
             }
         }
     }
@@ -232,14 +233,26 @@
 
     private async Task ChangeImage()
     {
+        if (ImageFile == null)
+        {
+            return;
+        }
+
         string folderPath = "wwwroot/images/2_euro_coins/";
-        string filePath = Path.Combine(folderPath, "test.png");
+
+        string fileName = ImageFile.Name;
+        string originalExtension = fileName.Split('.')[^1];
+        string filePath = Path.Combine(folderPath, fileName);
+
+        while (File.Exists(filePath))
+        {
+            fileName = Guid.NewGuid().ToString();
+            fileName += '.' + originalExtension;
+            filePath = Path.Combine(folderPath, fileName);
+        }
         
         await using var stream = new FileStream(filePath, FileMode.Create);
-        if (ImageFile != null)
-        {
-            await ImageFile.OpenReadStream().CopyToAsync(stream);
-        }
+        await ImageFile.OpenReadStream().CopyToAsync(stream);
 
         CoinM.ImagePath = filePath;
     }

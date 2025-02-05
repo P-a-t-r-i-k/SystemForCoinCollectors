@@ -45,7 +45,7 @@
     public int DuplicateAlbumTypeId { get; set; }
     public int WishlistAlbumTypeId { get; set; }
 
-    protected async override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         CollectionAlbumTypeId = await AlbumService.GetCollectionAlbumTypeId();
         DuplicateAlbumTypeId = await AlbumService.GetDuplicateAlbumTypeId();

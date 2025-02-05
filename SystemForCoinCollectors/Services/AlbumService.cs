@@ -1,4 +1,5 @@
-﻿using SystemForCoinCollectors.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using SystemForCoinCollectors.Data;
 
 namespace SystemForCoinCollectors.Services
 {
@@ -11,7 +12,7 @@ namespace SystemForCoinCollectors.Services
         }
         public List<CoinAlbum> GetAllUserAlbums(string ownerId)
         {
-            var albums = _context.CoinAlbums.Where(item => item.ApplicationUser.Id == ownerId);
+            var albums = _context.CoinAlbums.Where(item => item.ApplicationUser.Id == ownerId).Include(item => item.CollectedCoins);
             return albums.ToList();
         }
 

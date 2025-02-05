@@ -3,6 +3,11 @@
 
 @inject ICoinService CoinService
 @inject NavigationManager NavigationManager
+@inject IAlbumService AlbumService
+@inject IAlbumCoinService AlbumCoinService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IUserService UserService
+@inject IJSRuntime JSRuntime
 
 @attribute [StreamRendering(true)]
 @rendermode @(new InteractiveServerRenderMode(false))
@@ -42,21 +47,53 @@ else
     <p><span class="bold-text">Issuing year: </span>@_coin.IssuingYear</p>
     <p><span class="bold-text">Country: </span>@_coin.Country</p>
 
-    <AuthorizeView Roles="Admin">
-        <button class="btn btn-primary purple-button" @onclick="HandleEditCoin">Edit Coin</button>
+    <AuthorizeView>
+        <div class="button-div d-flex justify-content-center flex-wrap gap-3">
+            <button class="btn btn-primary purple-button" @onclick="() => HandleAddRemoveButtonClick(CollectionAlbumTypeId)">@_collectionButtonText</button>
+            <button class="btn btn-primary purple-button" @onclick="() => HandleAddRemoveButtonClick(DuplicateAlbumTypeId)">@_duplicatesButtonText</button>
+            <button class="btn btn-primary purple-button" @onclick="() => HandleAddRemoveButtonClick(WishlistAlbumTypeId)">@_wishlistButtonText</button>
+        
+            <AuthorizeView Context="adminContext" Roles="Admin">
+                <button class="edit-button btn btn-primary purple-button" @onclick="HandleEditCoin">Edit Coin</button>
+            </AuthorizeView>
+        </div>
     </AuthorizeView>
-    
 }
 
 @code {
     [Parameter]
     public int Id { get; set; }
 
-    private Coin? _coin;
+    public int CollectionAlbumTypeId { get; set; }
+    public int DuplicateAlbumTypeId { get; set; }
+    public int WishlistAlbumTypeId { get; set; }
 
-    protected async override Task OnInitializedAsync()
+    public ApplicationUser? User { get; set; }
+
+    private Coin? _coin;
+    private string _collectionButtonText = "";
+    private string _duplicatesButtonText = "";
+    private string _wishlistButtonText = "";
+
+    protected override async Task OnInitializedAsync()
     {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId == null)
+        {
+            NavigationManager.NavigateTo("/error");
+        }
+
         _coin = await CoinService.GetById(Id);
+        User = await UserService.GetUserById(userId);
+
+        CollectionAlbumTypeId = await AlbumService.GetCollectionAlbumTypeId();
+        DuplicateAlbumTypeId = await AlbumService.GetDuplicateAlbumTypeId();
+        WishlistAlbumTypeId = await AlbumService.GetWishlistAlbumTypeId();
+
+        SetButtonTextsOnInitialized();
     }
 
     private void HandleEditCoin()
@@ -64,4 +101,112 @@ else
         NavigationManager.NavigateTo($"/edit-coin/{Id}");
     }
 
+    private async Task HandleAddRemoveButtonClick(int albumTypeId)
+    {
+        List<CoinAlbum> userAlbums = AlbumService.GetAllUserAlbums(User.Id);
+
+        CoinAlbum? coinAlbum = userAlbums.FirstOrDefault(item => item.AlbumTypeId == albumTypeId);
+        if (coinAlbum != null && coinAlbum.CollectedCoins.Contains(_coin))
+        {
+            AlbumCoinService.RemoveCoinFromAlbum(coinAlbum.Id, _coin.Id);
+            ChangeButtonText(albumTypeId, false);
+            await ShowJSMessage("Coin removed successfully.");
+        }
+        else if (coinAlbum != null)
+        {
+            AlbumCoinService.AddCoinToAlbum(coinAlbum.Id, _coin.Id);
+            ChangeButtonText(albumTypeId, true);
+            await ShowJSMessage("Coin added successfully.");
+        }
+    }
+
+    private void ChangeButtonText(int albumTypeId, bool isInCollection)
+    {
+        if (albumTypeId == CollectionAlbumTypeId)
+        {
+            if (isInCollection)
+            {
+                _collectionButtonText = "Remove Coin From Collection";
+            }
+            else
+            {
+                _collectionButtonText = "Add Coin To Collection";
+            }
+        }
+        else if (albumTypeId == CollectionAlbumTypeId)
+        {
+            if (isInCollection)
+            {
+                _duplicatesButtonText = "Remove Coin From Duplicates";
+            }
+            else
+            {
+                _duplicatesButtonText = "Add Coin To Duplicates";
+            }
+        }
+        else
+        {
+            if (isInCollection)
+            {
+                _wishlistButtonText = "Remove Coin From Wishlist";
+            }
+            else
+            {
+                _wishlistButtonText = "Add Coin To Wishlist";
+            }
+        }
+    }
+
+    private void SetButtonTextsOnInitialized()
+    {
+        List<CoinAlbum> userAlbums = AlbumService.GetAllUserAlbums(User.Id);
+        int[] albumTypeIds = { CollectionAlbumTypeId, DuplicateAlbumTypeId, WishlistAlbumTypeId };
+        for (int i = 0; i < albumTypeIds.Length; i++)
+        {
+            CoinAlbum? coinAlbum = userAlbums.FirstOrDefault(item => item.AlbumTypeId == albumTypeIds[i]);
+            if (coinAlbum == null)
+            {
+                continue;
+            }
+
+            if (coinAlbum.AlbumTypeId == CollectionAlbumTypeId)
+            {
+                if (coinAlbum.CollectedCoins == null || !coinAlbum.CollectedCoins.Contains(_coin))
+                {
+                    _collectionButtonText = "Add Coin To Collection";
+                }
+                else
+                {
+                    _collectionButtonText = "Remove Coin From Collection";
+                }
+            }
+            else if (coinAlbum.AlbumTypeId == DuplicateAlbumTypeId)
+            {
+                if (coinAlbum.CollectedCoins == null || !coinAlbum.CollectedCoins.Contains(_coin))
+                {
+                    _duplicatesButtonText = "Add Coin To Duplicates";
+                }
+                else
+                {
+                    _duplicatesButtonText = "Remove Coin From Duplicates";
+                }
+            }
+            else
+            {
+                if (coinAlbum.CollectedCoins == null || !coinAlbum.CollectedCoins.Contains(_coin))
+                {
+                    _wishlistButtonText = "Add Coin To Wishlist";
+                }
+                else
+                {
+                    _wishlistButtonText = "Remove Coin From Wishlist";
+                }
+            }
+        }
+    }
+
+    private async Task ShowJSMessage(string message)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", message);
+    }
 }
