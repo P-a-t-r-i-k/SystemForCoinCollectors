@@ -1,0 +1,319 @@
+﻿@page "/create-coin"
+@page "/edit-coin/{id:int}"
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject ICoinService CoinService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<PageTitle>@_heading</PageTitle>
+
+<AuthorizeView Roles="Admin" Context="authContext">
+    <Authorized>
+        <h3>@_heading</h3>
+
+        @if (_coinChangeSuccessfull)
+        {
+            <div class="alert alert-success alert-dismissible">
+                <a href="/create-coin" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                @_successMessage
+            </div>
+        }
+        else if (_errorMessages.Count > 0)
+        {
+            foreach (string errorMessage in _errorMessages)
+            {
+                <div class="alert alert-danger">
+                    @errorMessage
+                </div>
+            }
+        }
+
+        <EditForm Model="CoinM" enctype="multipart/form-data" OnValidSubmit="HandleValidSubmit" FormName="EditCoin">
+            <DataAnnotationsValidator />
+            
+            <div class="form-group">
+                <label for="feature">Feature</label>
+                <InputText id="feature" @bind-Value="CoinM.Feature" class="form-control">@CoinM.Feature</InputText>
+                <ValidationMessage For="() => CoinM.Feature" class="text-danger"/>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <InputTextArea id="description" @bind-Value="CoinM.Description" class="form-control" rows="6">@CoinM.Description</InputTextArea>
+                <ValidationMessage For="() => CoinM.Description" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="issuingVolume">Issuing Volume</label>
+                <InputText id="issuingVolume" @bind-Value="CoinM.IssuingVolume" class="form-control">@CoinM.IssuingVolume</InputText>
+                <ValidationMessage For="() => CoinM.IssuingVolume" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="issuingYear">Issuing Year</label>
+                <InputText id="issuingYear" @bind-Value="CoinM.IssuingYear" class="form-control">@CoinM.IssuingYear</InputText>
+                <ValidationMessage For="() => CoinM.IssuingYear" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label>Image</label>
+                <InputFile OnChange="HandleFileSelection" class="form-control form-control-file"></InputFile>
+            </div>
+
+            <div class="form-group">
+                <label for="country">Country</label>
+                <InputSelect id="country" @bind-Value="CoinM.Country" class="form-control">
+                    <option value="" disabled>Select a Country</option>
+                    @foreach (string country in Countries)
+                    {
+                        <option value="@country">@country</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => CoinM.Country" />
+            </div>
+
+            <button type="submit" class="btn btn-primary submit-button purple-button">Submit</button>
+            
+            @if (_uriAbsolutePath.Contains(_editCoin))
+            {
+                <button type="button" class="btn btn-danger delete-button" @onclick="RemoveCoin">Delete</button>
+            }
+        </EditForm>
+
+    </Authorized>
+    
+    <NotAuthorized>
+        <UnauthorizedAccess />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    bool _coinChangeSuccessfull = false;
+    private string _uriAbsolutePath = "";
+    private const string _editCoin = "/edit-coin";
+    private List<string> _errorMessages = new();
+
+    private string _heading = "";
+    private string _successMessage = "";
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    public IBrowserFile? ImageFile { get; set; }
+
+    [SupplyParameterFromForm]
+    CoinModel CoinM { get; set; } = new();
+
+    public class CoinModel
+    {
+        [Required(ErrorMessage = "Feature is required!")]
+        public string Feature { get; set; } = "";
+
+        [Required(ErrorMessage = "Description is required!")]
+        public string Description { get; set; } = "";
+
+        [Required(ErrorMessage = "Issuing volume is required!")]
+        public string IssuingVolume { get; set; } = "";
+
+        [Required(ErrorMessage = "Issuing year is required!")]
+        public string IssuingYear { get; set; } = "";
+
+        public string ImagePath { get; set; } = "";
+
+        [Required(ErrorMessage = "Country is required!")]
+        public string Country { get; set; } = "";
+    }
+
+    public bool FileWasChanged { get; set; } = false;
+
+    public string[] Countries = new[]
+    {
+        "Andorra", "Austria", "Belgium", "Croatia", "Cyprus", "Estonia", "Finland",
+        "France", "Germany", "Greece", "Ireland", "Italy", "Latvia", "Lithuania",
+        "Luxembourg", "Malta", "Monaco", "Netherlands", "Portugal", "San Marino",
+        "Slovakia", "Slovenia", "Spain", "Vatican City"
+    };
+
+    async Task HandleValidSubmit()
+    {
+        _errorMessages.Clear();
+        CheckInputs();
+        if (_errorMessages.Count > 0)
+        {
+            return;
+        }
+
+        if (_uriAbsolutePath.Contains(_editCoin))
+        {
+            if (FileWasChanged)
+            {
+                await ChangeImage();
+            }
+
+            if (Id != null)
+            {
+                Coin coin = CopyModelValuesToCoin();
+                await CoinService.UpdateCoin(Id.Value, coin);
+                _successMessage = "Coin has been successfully edited.";
+            }
+        }
+        else
+        {
+            await ChangeImage();
+            Coin coin = CopyModelValuesToCoin();
+            await CoinService.AddCoin(coin);
+            _successMessage = "Coin has been successfully added to the collection.";
+        }
+        
+        Reset();
+        _coinChangeSuccessfull = true;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavigationManager.Uri;
+        var newUri = new Uri(uri);
+        _uriAbsolutePath = newUri.AbsolutePath;
+
+        if (_uriAbsolutePath.Contains(_editCoin) && Id != null)
+        {
+            Console.WriteLine($"Id is: {Id.Value}");
+            Coin? coin = await CoinService.GetById(Id.Value);
+            if (coin != null)
+            {
+                CopyCoinValuesToModel(coin);
+            }
+
+            _heading = "Edit Coin";
+        }
+        else
+        {
+            _heading = "Create Coin";
+        }
+    }
+
+    private void Reset()
+    {
+        CoinM.Feature = "";
+        CoinM.Description = "";
+        CoinM.IssuingVolume = "";
+        CoinM.IssuingYear = "";
+        CoinM.ImagePath = "";
+        CoinM.Country = Countries[0];
+    }
+
+    private async Task RemoveCoin()
+    {
+        if (Id != null)
+        {
+            bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", 
+                "The coin will be permanently deleted. Are you sure to continue?");
+            if (confirmed)
+            {
+                await CoinService.DeleteCoin(Id.Value);
+                NavigationManager.NavigateTo("/create-coin");
+            }
+        }
+    }
+
+    private async Task HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        ImageFile = e.File;
+        FileWasChanged = true;
+    }
+
+    private async Task ChangeImage()
+    {
+        if (ImageFile == null)
+        {
+            return;
+        }
+
+        string folderPath = "wwwroot/images/2_euro_coins/";
+
+        string fileName = ImageFile.Name;
+        string originalExtension = fileName.Split('.')[^1];
+        string filePath = Path.Combine(folderPath, fileName);
+
+        while (File.Exists(filePath))
+        {
+            fileName = Guid.NewGuid().ToString();
+            fileName += '.' + originalExtension;
+            filePath = Path.Combine(folderPath, fileName);
+        }
+        
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await ImageFile.OpenReadStream().CopyToAsync(stream);
+
+        CoinM.ImagePath = filePath;
+    }
+
+    private void CheckInputs()
+    {
+        if (double.TryParse(CoinM.IssuingYear, out double year))
+        {
+            if (year - (int)year > 0)
+            {
+                _errorMessages.Add("Issuing year must be an integer!");
+            }
+
+            int currentYear = DateTime.Now.Year;
+            if (year > currentYear)
+            {
+                _errorMessages.Add($"Issuing year can not be greater than {currentYear}!");
+            }
+        }
+
+        if (double.TryParse(CoinM.IssuingVolume, out double volume))
+        {
+            if (volume - (int)volume > 0)
+            {
+                _errorMessages.Add("Issuing volume must be an integer!");
+            }
+
+            if (volume <= 0)
+            {
+                _errorMessages.Add("Issuing volume must be greater than 0!");
+            }
+        }
+
+        if (!_uriAbsolutePath.Contains(_editCoin) && ImageFile == null)
+        {
+            _errorMessages.Add("Image is required when creating a coin!");
+        }
+    }
+
+    private void CopyCoinValuesToModel(Coin coin)
+    {
+        CoinM.Feature = coin.Feature;
+        CoinM.IssuingVolume = coin.IssuingVolume;
+        CoinM.IssuingYear = coin.IssuingYear;
+        CoinM.Country = coin.Country;
+        CoinM.Description = coin.Description;
+        CoinM.ImagePath = coin.ImagePath;
+    }
+
+    private Coin CopyModelValuesToCoin()
+    {
+        Coin coin = new Coin()
+        {
+            Feature = CoinM.Feature,
+        };
+        
+        coin.IssuingVolume = CoinM.IssuingVolume;
+        coin.IssuingYear = CoinM.IssuingYear;
+        coin.Country = CoinM.Country;
+        coin.Description = CoinM.Description;
+        coin.ImagePath = CoinM.ImagePath;
+
+        return coin;
+    }
+}

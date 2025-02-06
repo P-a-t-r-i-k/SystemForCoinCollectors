@@ -1,0 +1,34 @@
+﻿table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #b3b3b3;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+label {
+    margin-top: 10px;
+}
+
+.purple-button {
+    background-color: rgb(97, 15, 100);
+    border-color: rgb(97, 15, 100);
+    color: white;
+}
+
+.search-bar {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.bold-text {
+    font-weight: bold;
+}

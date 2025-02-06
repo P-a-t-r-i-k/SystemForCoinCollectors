@@ -1,0 +1,63 @@
+﻿@page "/choose-year/{AlbumId:int}"
+
+@using SystemForCoinCollectors.Services
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@inject ICoinService CoinService
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Choose Year</h3>
+
+        @if (_years == null)
+        {
+            <span>Loading...</span>
+        }
+        else if (_years.Count == 0)
+        {
+            <span>Something went wrong. Please contact our support team.</span>
+        }
+        else
+        {
+            <div class="container">
+                @for (int i = 0; i < _defaultNumberOfRows; i++)
+                {
+                    <div class="row">
+                        @for (int j = 0; j < _defaultNumberOfColumns; j++)
+                        {
+                            @if (i * _defaultNumberOfColumns + j < _years.Count)
+                            {
+                                string year = _years[i * _defaultNumberOfColumns + j];
+                                <div class="col">
+                                    <a href="/my-collection/@AlbumId/@year">
+                                        <button class="btn btn-primary year-button">@year</button>
+                                    </a>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </Authorized>
+    
+    <NotAuthorized>
+        <NotLoggedIn />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public int AlbumId { get; set; }
+
+    private List<string>? _years = null;
+    private int _defaultNumberOfRows = 5;
+    private int _defaultNumberOfColumns = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _years = await CoinService.GetYearsDescending();
+    }
+}

@@ -1,0 +1,17 @@
+﻿.bold-text {
+    font-weight: bold;
+}
+
+.username-text {
+    font-size: 20px;
+}
+
+.gap {
+    margin-top: 20px;
+}
+
+.purple-button {
+    background-color: rgb(97, 15, 100);
+    border-color: rgb(97, 15, 100);
+    color: white;
+}

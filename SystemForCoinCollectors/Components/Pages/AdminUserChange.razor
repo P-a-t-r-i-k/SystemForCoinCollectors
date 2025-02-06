@@ -1,0 +1,254 @@
+﻿@page "/admin-user-change/{UserId}"
+
+@using System.ComponentModel.DataAnnotations
+@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IAdminUserHistoryService AdminUserHistoryService
+@inject IUserService UserService
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
+
+<PageTitle>Admin User Change</PageTitle>
+
+<AuthorizeView Context="authContext" Roles="Admin">
+    <Authorized>
+        @if (EditedUser == null)
+        {
+            <span>User with id="@UserId" doesn't exist in database!</span>
+        }
+        else
+        {
+            if (_errorMessages.Count > 0)
+            {
+                foreach (string errorMessage in _errorMessages)
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
+                    </div>
+                }
+            }
+
+            <EditForm method="post" Model="AdminUserChangeM" OnValidSubmit="AddRecordToDb" FormName="adminUserChange">
+                <DataAnnotationsValidator />
+                <label class="bold-text username-text">Edited user:</label>
+                <label class="username-text">@EditedUser.UserName</label><br>
+
+                <label class="bold-text gap">Choose the action(s) you would like to take.</label><br>
+                <label title="Check if you want to change user data e.g. e-mail.">
+                    <InputCheckbox @bind-Value="ChangingData" />
+                    Changing data
+                </label><br>
+
+                <label title="Check if you want to add reputation points to the user.">
+                    <InputCheckbox @bind-Value="AddingRP" disabled="@RemovingRP" />
+                    Adding reputation points
+                </label><br>
+
+                <label title="Check if you want to remove reputation points from the user.">
+                    <InputCheckbox @bind-Value="RemovingRP" disabled="@AddingRP" />
+                    Removing reputation points
+                </label><br>
+
+                <label title="Check if you want to ban the user.">
+                    <InputCheckbox @bind-Value="BanningUser" />
+                    Banning user
+                </label><br>
+
+                @if (ChangingData)
+                {
+                    <div class="form-floating mb-3">
+                        <InputText id="oldEmail" @bind-Value="AdminUserChangeM.OldEmail" class="form-control gap" placeholder="Email" disabled="true"></InputText>
+                        <label for="oldEmail" class="form-label">Current Email</label>
+                        <ValidationMessage For="() => AdminUserChangeM.OldEmail" class="text-danger" />
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <InputText id="newEmail" @bind-Value="AdminUserChangeM.NewEmail" class="form-control gap" placeholder="Email"></InputText>
+                        <label for="newEmail" class="form-label">New Email</label>
+                        <ValidationMessage For="() => AdminUserChangeM.NewEmail" class="text-danger" />
+                    </div>
+                }
+
+                @if (AddingRP || RemovingRP)
+                {
+                    <div class="gap">
+                        <label class="bold-text">@AddRemoveRPMessage</label>
+                        <InputNumber @bind-Value="@AdminUserChangeM.ReputationPointsToAdd"></InputNumber>
+                        <ValidationMessage For="() => AdminUserChangeM.ReputationPointsToAdd" class="text-danger" />
+                    </div>
+                }
+
+                <div class="form-group gap">
+                    <label for="description" class="bold-text" title="Please provide a reason for your action(s).">Description</label>
+                    <InputTextArea id="description" @bind-Value="AdminUserChangeM.Description" class="form-control" rows="6">@AdminUserChangeM.Description</InputTextArea>
+                    <ValidationMessage For="() => AdminUserChangeM.Description" class="text-danger" />
+                </div>
+
+                @if (BanningUser)
+                {
+                    <div class="alert alert-warning gap">
+                        If you ban the user, they will no longer be able to log into their account!
+                    </div>
+                }
+
+                <button type="submit" class="btn btn-primary purple-button gap">Save changes</button>
+            </EditForm>
+        }
+    </Authorized>
+    
+    <NotAuthorized>
+        <UnauthorizedAccess />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    public bool ChangingData { get; set; }
+    public ApplicationUser? EditedUser { get; set; } = null;
+    private readonly List<string> _errorMessages = new();
+
+    private bool _addingRP = false;
+    public bool AddingRP
+    { 
+        get => _addingRP;
+        set
+        {
+            _addingRP = value;
+            ChangeAddRemoveRPMessage();
+        }
+    }
+
+    private bool _removingRP = false;
+
+    public bool RemovingRP
+    {
+        get => _removingRP;
+        set
+        {
+            _removingRP = value;
+            ChangeAddRemoveRPMessage();
+        }
+    }
+    
+
+    public bool BanningUser { get; set; }
+    public string AddRemoveRPMessage { get; set; }
+
+    [Parameter]
+    public string UserId { get; set; }
+
+    [SupplyParameterFromForm]
+    public AdminUserChangeModel AdminUserChangeM { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        EditedUser = await UserService.GetUserById(UserId);
+        if (EditedUser != null)
+        {
+            AdminUserChangeM.OldEmail = EditedUser.Email;
+        }
+    }
+
+    public class AdminUserChangeModel
+    {
+        public string OldEmail { get; set; } = "";
+
+        [EmailAddress(ErrorMessage = "Invalid e-mail address!")]
+        public string? NewEmail { get; set; }
+
+        [Required(ErrorMessage = "Description is required!")]
+        public string Description { get; set; } = "";
+
+        [Range(0, int.MaxValue, ErrorMessage = "Number should be greater than 0")]
+        public int ReputationPointsToAdd { get; set; }
+    }
+
+    public async Task AddRecordToDb()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+        var adminId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (EditedUser == null)
+        {
+            return;
+        }
+
+        if (!ChangingData && !AddingRP && !RemovingRP && !BanningUser)
+        {
+            return;
+        }
+
+        AdminChangesInUserTableHistory changes = new AdminChangesInUserTableHistory
+        {
+            UserId = EditedUser.Id,
+            AdminId = adminId,
+            DateTimeOfChange = DateTime.Now,
+            OldEmail = AdminUserChangeM.OldEmail,
+            OldReputationPoints = EditedUser.ReputationPoints,
+            NewReputationPoints = EditedUser.ReputationPoints,
+            Description = AdminUserChangeM.Description
+        };
+
+        if (ChangingData)
+        {
+            ApplicationUser? userInDb = await UserService.GetUserByEmail(AdminUserChangeM.NewEmail);
+            if (userInDb != null)
+            {
+                _errorMessages.Add("This e-mail is already used by another user!");
+                return;
+            }
+            else
+            {
+                changes.NewEmail = AdminUserChangeM.NewEmail;
+                await UserService.ChangeEmail(UserId, changes.NewEmail);
+            }
+        }
+
+        if (AddingRP)
+        {
+            changes.NewReputationPoints = EditedUser.ReputationPoints + AdminUserChangeM.ReputationPointsToAdd;
+            await UserService.ChangeReputationPoints(UserId, changes.NewReputationPoints);
+        }
+
+        if (RemovingRP)
+        {
+            changes.NewReputationPoints = EditedUser.ReputationPoints - AdminUserChangeM.ReputationPointsToAdd;
+            await UserService.ChangeReputationPoints(UserId, changes.NewReputationPoints);
+        }
+
+        AdminUserHistoryService.AddRecord(changes);
+        ResetForm();
+    }
+
+    public void ChangeAddRemoveRPMessage()
+    {
+        if (AddingRP)
+        {
+            AddRemoveRPMessage = "Please enter number of points you want to add to the user.";
+        }
+        else if (RemovingRP)
+        {
+            AddRemoveRPMessage = "Please enter number of points you want to remove from the user.";
+        }
+        else
+        {
+            AddRemoveRPMessage = "";
+        }
+
+        AdminUserChangeM.ReputationPointsToAdd = 0;
+    }
+
+    public void ResetForm()
+    {
+        ChangingData = false;
+        AddingRP = false;
+        RemovingRP = false;
+        BanningUser = false;
+        AdminUserChangeM.NewEmail = "";
+        AdminUserChangeM.Description = "";
+        AdminUserChangeM.ReputationPointsToAdd = 0;
+    }
+}

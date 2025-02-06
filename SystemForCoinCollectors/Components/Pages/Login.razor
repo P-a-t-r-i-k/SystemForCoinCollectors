@@ -66,6 +66,7 @@
         public string Password { get; set; } = "";
     }
 
+    // Táto metóda bola vygenerovaná pomocou IDE.
     protected override async Task OnInitializedAsync()
     {
         if (HttpMethods.IsGet(HttpContext.Request.Method))
@@ -88,7 +89,7 @@
         var result = await SignInManager.PasswordSignInAsync(UserM.UserName, UserM.Password, false, false);
         if (result.Succeeded)
         {
-            NavigationManager.NavigateTo("/my-collection");
+            NavigationManager.NavigateTo("/home");
         }
         else
         {

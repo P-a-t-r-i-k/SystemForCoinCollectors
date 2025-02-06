@@ -1,0 +1,71 @@
+﻿@page "/admin-history"
+
+@using SystemForCoinCollectors.Data
+@using SystemForCoinCollectors.Services
+
+@inject IAlbumCoinService AlbumCoinService
+@inject IUserService UserService
+
+@attribute [StreamRendering(true)]
+@rendermode @(new InteractiveServerRenderMode(false))
+
+<PageTitle>Admin History</PageTitle>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        @if (_records == null)
+        {
+            <span>Loading...</span>
+        }
+        else if (_records.Count == 0)
+        {
+            <span>No records were found in the database.</span>
+        }
+        else
+        {
+            <h3>Admin History</h3>
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Admin</th>
+                    <th>User</th>
+                    <th>Description</th>
+                    <th>Old e-mail</th>
+                    <th>New e-mail</th>
+                    <th>Old RP</th>
+                    <th>New RP</th>
+                </tr>
+
+                @foreach (var record in _records)
+                {
+                    string adminUsername = UserService.GetUsername(record.AdminId);
+                    string userUsername = UserService.GetUsername(record.UserId);
+                    <tr>
+                        <td>@record.DateTimeOfChange</td>
+                        <td>@adminUsername</td>
+                        <td>@userUsername</td>
+                        <td>@record.Description</td>
+                        <td>@record.OldEmail</td>
+                        <td>@record.NewEmail</td>
+                        <td>@record.OldReputationPoints</td>
+                        <td>@record.NewReputationPoints</td>
+                    </tr>
+                }
+            </table>
+        }
+    </Authorized>
+    
+    <NotAuthorized>
+        <UnauthorizedAccess />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<AdminChangesInUserTableHistory>? _records = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _records = await AlbumCoinService.GetAllRecords();
+    }
+
+}

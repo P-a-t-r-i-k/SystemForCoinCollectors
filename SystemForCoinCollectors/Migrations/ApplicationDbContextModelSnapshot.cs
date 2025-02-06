@@ -22,6 +22,21 @@ namespace SystemForCoinCollectors.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CoinCoinAlbum", b =>
+                {
+                    b.Property<int>("CoinAlbumsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CollectedCoinsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CoinAlbumsId", "CollectedCoinsId");
+
+                    b.HasIndex("CollectedCoinsId");
+
+                    b.ToTable("CoinCoinAlbum");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -155,6 +170,66 @@ namespace SystemForCoinCollectors.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SystemForCoinCollectors.Data.AdminChangesInUserTableHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateTimeOfChange")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NewEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NewReputationPoints")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OldEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OldReputationPoints")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AdminChangesInUserTableHistory");
+                });
+
+            modelBuilder.Entity("SystemForCoinCollectors.Data.AlbumType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AlbumTypes");
+                });
+
             modelBuilder.Entity("SystemForCoinCollectors.Data.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -205,6 +280,9 @@ namespace SystemForCoinCollectors.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<int>("ReputationPoints")
+                        .HasColumnType("int");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -230,6 +308,81 @@ namespace SystemForCoinCollectors.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("SystemForCoinCollectors.Data.Coin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feature")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IssuingVolume")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IssuingYear")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Coins");
+                });
+
+            modelBuilder.Entity("SystemForCoinCollectors.Data.CoinAlbum", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AlbumTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlbumTypeId");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("CoinAlbums");
+                });
+
+            modelBuilder.Entity("CoinCoinAlbum", b =>
+                {
+                    b.HasOne("SystemForCoinCollectors.Data.CoinAlbum", null)
+                        .WithMany()
+                        .HasForeignKey("CoinAlbumsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SystemForCoinCollectors.Data.Coin", null)
+                        .WithMany()
+                        .HasForeignKey("CollectedCoinsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -281,6 +434,48 @@ namespace SystemForCoinCollectors.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SystemForCoinCollectors.Data.AdminChangesInUserTableHistory", b =>
+                {
+                    b.HasOne("SystemForCoinCollectors.Data.ApplicationUser", "Admin")
+                        .WithMany()
+                        .HasForeignKey("AdminId");
+
+                    b.HasOne("SystemForCoinCollectors.Data.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Admin");
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("SystemForCoinCollectors.Data.CoinAlbum", b =>
+                {
+                    b.HasOne("SystemForCoinCollectors.Data.AlbumType", "AlbumType")
+                        .WithMany("CoinAlbums")
+                        .HasForeignKey("AlbumTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SystemForCoinCollectors.Data.ApplicationUser", "ApplicationUser")
+                        .WithMany("CoinAlbums")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.Navigation("AlbumType");
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("SystemForCoinCollectors.Data.AlbumType", b =>
+                {
+                    b.Navigation("CoinAlbums");
+                });
+
+            modelBuilder.Entity("SystemForCoinCollectors.Data.ApplicationUser", b =>
+                {
+                    b.Navigation("CoinAlbums");
                 });
 #pragma warning restore 612, 618
         }

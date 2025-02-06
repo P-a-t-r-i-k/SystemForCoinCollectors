@@ -14,6 +14,12 @@ namespace SystemForCoinCollectors.Data
         
         [StringLength(50)]
         public string? Address { get; set; }
+
+        public int ReputationPoints { get; set; }
+
+        
+        // navigation properties
+        public ICollection<CoinAlbum> CoinAlbums { get; set; }
     }
 
 }
