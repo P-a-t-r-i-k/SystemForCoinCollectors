@@ -147,12 +147,6 @@
 
     public async void OnValueChanged(int coinId)
     {
-        /*
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authenticationState.User;
-        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        */
-
         Coin? coin = await CoinService.GetById(coinId);
         if (coin == null || _coinsInAlbum == null)
         {
@@ -169,8 +163,6 @@
             _coinsInAlbum.Add(coin);
             AlbumCoinService.AddCoinToAlbum(AlbumId, coinId);
         }
-
-        Console.WriteLine(coinId);
     }
 
 }

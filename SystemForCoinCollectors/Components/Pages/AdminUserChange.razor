@@ -3,7 +3,6 @@
 @using System.ComponentModel.DataAnnotations
 @using SystemForCoinCollectors.Data
 @using SystemForCoinCollectors.Services
-@using Microsoft.AspNetCore.Authorization
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IAdminUserHistoryService AdminUserHistoryService
@@ -32,7 +31,7 @@
                 }
             }
 
-            <EditForm method="post" Model="AdminUserChangeM" OnValidSubmit="AddRecordToDb" FormName="adminUserChange" Enhance>
+            <EditForm method="post" Model="AdminUserChangeM" OnValidSubmit="AddRecordToDb" FormName="adminUserChange">
                 <DataAnnotationsValidator />
                 <label class="bold-text username-text">Edited user:</label>
                 <label class="username-text">@EditedUser.UserName</label><br>
@@ -108,7 +107,7 @@
 @code {
     public bool ChangingData { get; set; }
     public ApplicationUser? EditedUser { get; set; } = null;
-    private List<string> _errorMessages = new();
+    private readonly List<string> _errorMessages = new();
 
     private bool _addingRP = false;
     public bool AddingRP
@@ -157,7 +156,7 @@
         public string OldEmail { get; set; } = "";
 
         [EmailAddress(ErrorMessage = "Invalid e-mail address!")]
-        public string NewEmail { get; set; } = "";
+        public string? NewEmail { get; set; }
 
         [Required(ErrorMessage = "Description is required!")]
         public string Description { get; set; } = "";
